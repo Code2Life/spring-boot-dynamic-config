@@ -125,7 +125,7 @@ java -jar your-spring-boot-app.jar --spring.config.location=/path/to/config
 - 配置由**持续集成系统自动化部署**到开发/产线环境，而不是登陆到某个系统，手动输入配置值；
 - Git Ops的方式做自动化运维，更符合DevOps的思想，在应用服务数量非常多的时候，也更具备伸缩性。
 
-## 实现核心
+## 实现核心逻辑
 
 1. 使用 --spring.config.location 参数启动时，初始化 DynamicConfigPropertiesWatcher 这个Bean；
 2. 与此同时，初始化 DynamicConfigBeanPostProcessor 这个BeanPostProcessor，用来处理 @DynamicConfig；
