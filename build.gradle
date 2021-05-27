@@ -1,0 +1,66 @@
+buildscript {
+	ext {
+		springBootVersion = '2.5.0'
+	}
+}
+plugins {
+	id 'java-library'
+	id 'maven-publish'
+}
+
+group = 'top.code2life'
+version = '1.0.1'
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compileOnly 'org.projectlombok:lombok:1.18.20'
+	annotationProcessor 'org.projectlombok:lombok:1.18.20'
+	compileOnly "org.springframework.boot:spring-boot-starter:${springBootVersion}"
+
+	testCompileOnly 'org.projectlombok:lombok:1.18.20'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
+	testImplementation('org.junit.jupiter:junit-jupiter:5.7.1')
+	testImplementation 'org.yaml:snakeyaml:1.28'
+	testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			pom {
+				name = 'My Library'
+				description = 'A concise description of my library'
+				url = 'http://www.example.com/library'
+				licenses {
+					license {
+						name = 'The Apache License, Version 2.0'
+						url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+					}
+				}
+				developers {
+					developer {
+						id = 'Code2Life'
+						name = 'Joey Yang'
+					}
+				}
+				scm {
+					connection = 'scm:git:https://github.com/Code2Life/spring-boot-dynamic-config.git'
+					developerConnection = 'scm:git:https://github.com/Code2Life/spring-boot-dynamic-config.git'
+					url = 'https://github.com/Code2Life/spring-boot-dynamic-config'
+				}
+			}
+		}
+	}
+}
+
+test {
+	useJUnitPlatform()
+	ignoreFailures = false
+	testLogging {
+		exceptionFormat = 'full'
+	}
+}

@@ -1,0 +1,15 @@
+spring:
+  profiles:
+    include:
+      - dynamic
+logging:
+  level:
+    top.code2life: debug
+
+myProp:
+  str: dynamic
+  double-val: 1
+  map-val:
+    k1: va
+    k2: v3
+    k3: 11
