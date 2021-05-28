@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestPropertySource(
         properties = {"spring.config.location=" + DynamicConfigStarterTests.CONFIG_LOCATION}
 )
-@SpringBootTest(classes = {TestApplication.class, FeatureGate.class, DynamicConfigPropertiesWatcher.class, DynamicConfigBeanPostProcessor.class, TestBeanConfiguration.class})
+@SpringBootTest(classes = {TestApplication.class})
 public class DynamicConfigStarterTests {
 
     public static final String CONFIG_LOCATION = "./build/resources/test/";
@@ -37,6 +37,9 @@ public class DynamicConfigStarterTests {
 
     @Autowired
     private TestComponent testComponent;
+
+    @Autowired
+    private FeatureGate featureGate;
 
     @Autowired
     private TestBeanConfiguration testBeanConfig;
@@ -124,14 +127,21 @@ public class DynamicConfigStarterTests {
     @Test
     public void testDynamicValueOnFeatureGate() throws Exception {
         String testVal = randomStr(8);
-        assertFalse(FeatureGate.isFeatureEnabled(testComponent.getSomeBetaFeatureConfig(), testVal));
+        assertFalse(featureGate.isFeatureEnabled(testComponent.getSomeBetaFeatureConfig(), testVal));
 
         Map<String, Object> data = readYmlData("application-dynamic.yml");
         data.put("dynamicFeatureConf", data.get("dynamicFeatureConf") + ", " + testVal + " ,");
         writeYmlData(data, "application-dynamic.yml");
         Thread.sleep(1000);
 
-        assertTrue(FeatureGate.isFeatureEnabled(testComponent.getSomeBetaFeatureConfig(), testVal));
+        assertTrue(featureGate.isFeatureEnabled(testComponent.getSomeBetaFeatureConfig(), testVal));
+
+        assertTrue(!featureGate.isFeatureEnabled(testVal));
+        data.put(testVal, "True");
+        writeYmlData(data, "application-dynamic.yml");
+        Thread.sleep(1000);
+        assertTrue(featureGate.isFeatureEnabled(testVal));
+
     }
 
     @Test

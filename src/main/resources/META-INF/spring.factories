@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  top.code2life.config.DynamicConfigAutoConfiguration

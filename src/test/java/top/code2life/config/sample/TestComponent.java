@@ -2,6 +2,7 @@ package top.code2life.config.sample;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import top.code2life.config.DynamicConfig;
 
@@ -11,8 +12,8 @@ import java.util.Set;
  * @author Code2Life
  **/
 @Data
-@Component
 @DynamicConfig
+@Component
 public class TestComponent {
 
     @Value("${dynamic-test-plain:default}")

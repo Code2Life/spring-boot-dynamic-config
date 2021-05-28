@@ -1,0 +1,48 @@
+buildscript {
+	ext {
+		springBootVersion = '2.1.0.RELEASE'
+	}
+}
+
+plugins {
+	id 'org.springframework.boot' version "${springBootVersion}"
+	id 'java-library'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+bootJar {
+	mainClassName "com.example.demo.DemoApplication"
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		url "https://s01.oss.sonatype.org/content/repositories/snapshots"
+	}
+}
+
+dependencies {
+	api platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+
+	compileOnly 'org.projectlombok:lombok:1.18.20'
+	annotationProcessor 'org.projectlombok:lombok:1.18.20'
+
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'top.code2life:spring-boot-dynamic-config:1.0.3-SNAPSHOT'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+	useJUnitPlatform()
+}

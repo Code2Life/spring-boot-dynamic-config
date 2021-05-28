@@ -14,10 +14,18 @@ import org.springframework.core.env.PropertySource;
 @Getter
 @Setter
 public class ConfigurationChangedEvent extends ApplicationEvent {
+
+    /**
+     * previous property source of changed config file
+     */
     private PropertySource<?> previous;
+
+    /**
+     * current property source of changed config file
+     */
     private PropertySource<?> current;
 
-    public ConfigurationChangedEvent(String path) {
+    ConfigurationChangedEvent(String path) {
         super(path);
     }
 }

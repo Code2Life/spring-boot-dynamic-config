@@ -2,6 +2,8 @@
 
 Make you SpringBoot configuration dynamic, just with one '@DynamicConfig' annotation, the simplest solution, ever.
 
+[English](https://github.com/Code2Life/spring-boot-dynamic-config/blob/main/README.md) [简体中文](https://github.com/Code2Life/spring-boot-dynamic-config/blob/main/README-zh.md)
+
 #### Compare with spring-cloud-starter-config
 
 - No need for config server
@@ -13,9 +15,9 @@ Make you SpringBoot configuration dynamic, just with one '@DynamicConfig' annota
 
 #### Highlights
 
-- **Non-intrusive**, compatible with SpringBoot native ways
-- **Lightweight**, depend on nothing but SpringBoot core libs
-- **Extremely easy to use**, only provide an annotation: @DynamicConfig, an event: ConfigurationChangedEvent
+- :sun_with_face: **Non-intrusive**, compatible with SpringBoot native ways
+- :zap: **Lightweight**, depend on nothing but SpringBoot core libs
+- :grinning: **Extremely easy to use**, only provide an annotation: @DynamicConfig, an event: ConfigurationChangedEvent
 
 ## Demo
 

@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.env.PropertySourceLoader;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
@@ -35,7 +33,6 @@ import java.util.stream.StreamSupport;
  * @see ConfigurationChangedEvent
  */
 @Slf4j
-@Configuration
 @ConditionalOnProperty("spring.config.location")
 public class DynamicConfigPropertiesWatcher implements DisposableBean {
 
@@ -53,7 +50,7 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
     @Value("${spring.config.location:}")
     private String configLocation;
 
-    public DynamicConfigPropertiesWatcher(StandardEnvironment env, ApplicationEventPublisher eventPublisher) {
+    DynamicConfigPropertiesWatcher(StandardEnvironment env, ApplicationEventPublisher eventPublisher) {
         this.env = env;
         this.eventPublisher = eventPublisher;
         this.propertyLoaders = SpringFactoriesLoader.loadFactories(PropertySourceLoader.class,

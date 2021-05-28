@@ -3,7 +3,6 @@ package top.code2life.config;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +16,6 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesBindin
 import org.springframework.boot.origin.OriginTrackedValue;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -38,10 +36,8 @@ import java.util.regex.Pattern;
  * @author Code2Life
  */
 @Slf4j
-@Component
 @ConditionalOnBean(DynamicConfigPropertiesWatcher.class)
 public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
-
     private static final String VALUE_EXPR_PREFIX = "$";
     private static final String SP_EL_PREFIX = "#";
     private static final Pattern VALUE_PATTERN = Pattern.compile("\\$\\{([^:}]+):?([^}]*)}");
@@ -56,23 +52,27 @@ public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
     private final ApplicationContext applicationContext;
     private final ConfigurationPropertiesBindingPostProcessor processor;
 
-    public DynamicConfigBeanPostProcessor(ApplicationContext applicationContext, BeanFactory beanFactory) {
+    DynamicConfigBeanPostProcessor(ApplicationContext applicationContext, BeanFactory beanFactory) {
         if (!(beanFactory instanceof ConfigurableListableBeanFactory)) {
             throw new IllegalArgumentException(
                     "DynamicConfig requires a ConfigurableListableBeanFactory");
         }
-        DYNAMIC_BEAN_MAP.clear();
-        DYNAMIC_FIELD_BINDER_MAP.clear();
-        DYNAMIC_CONFIG_PROPS_BINDER_MAP.clear();
+        this.processor = applicationContext.getBean(ConfigurationPropertiesBindingPostProcessor.class);
+        this.applicationContext = applicationContext;
         this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
         this.exprResolver = ((ConfigurableListableBeanFactory) beanFactory).getBeanExpressionResolver();
         this.exprContext = new BeanExpressionContext((ConfigurableListableBeanFactory) beanFactory, null);
-        this.applicationContext = applicationContext;
-        this.processor = applicationContext.getBean(ConfigurationPropertiesBindingPostProcessor.class);
+        DYNAMIC_BEAN_MAP.clear();
+        DYNAMIC_FIELD_BINDER_MAP.clear();
+        DYNAMIC_CONFIG_PROPS_BINDER_MAP.clear();
     }
 
+    /**
+     * Check all beans with DynamicConfig annotation after this PostProcessor being initialized,
+     * this double check mechanism is for a special case: some beans created by other approaches directly, not calling BeanPostProcessor
+     */
     @PostConstruct
-    public void handleDynamicConfigurationBeans() throws BeansException {
+    public void handleDynamicConfigurationBeans() {
         Map<String, Object> dynamicBeans = applicationContext.getBeansWithAnnotation(DynamicConfig.class);
         for (Map.Entry<String, Object> entry : dynamicBeans.entrySet()) {
             String beanName = entry.getKey();
@@ -80,10 +80,52 @@ public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
         }
     }
 
+    /**
+     * Process all beans contains @DynamicConfig annotation, collect metadata for continuous field value binding
+     *
+     * @param bean     bean instance
+     * @param beanName bean name
+     * @return original bean instance
+     */
     @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+    public Object postProcessAfterInitialization(Object bean, String beanName) {
         handleDynamicBean(bean, beanName);
         return bean;
+    }
+
+    /**
+     * Listen config changed event, to process related beans and set latest values for their fields
+     *
+     * @param event ConfigurationChangedEvent indicates a configuration file changed event
+     */
+    @EventListener
+    @SuppressWarnings("unchecked")
+    public void handleEvent(ConfigurationChangedEvent event) {
+        try {
+            Map<Object, OriginTrackedValue> prev = (Map<Object, OriginTrackedValue>) event.getPrevious().getSource();
+            Map<Object, OriginTrackedValue> current = (Map<Object, OriginTrackedValue>) event.getCurrent().getSource();
+            Map<Object, Object> diff = getPropertyDiff(prev, current);
+            Map<String, ValueBeanFieldBinder> toRefreshProps = new HashMap<>(4);
+            for (Map.Entry<Object, Object> entry : diff.entrySet()) {
+                String key = entry.getKey().toString();
+                Object val = entry.getValue();
+                processConfigPropsClass(toRefreshProps, key);
+                processValueField(key, val);
+            }
+            toRefreshProps.forEach((beanName, binder) -> {
+                WeakReference<Object> beanRef = binder.getBeanRef();
+                if (beanRef != null && beanRef.get() != null) {
+                    processor.postProcessBeforeInitialization(Objects.requireNonNull(beanRef.get()), beanName);
+                    log.debug("changes detected, re-bind ConfigurationProperties bean: {}", beanName);
+                }
+            });
+            log.info("config changes of {} have been processed", event.getSource());
+        } catch (Exception ex) {
+            log.warn("config changes of {} can not be processed, error:", event.getSource(), ex);
+            if (log.isDebugEnabled()) {
+                log.error("error detail is:", ex);
+            }
+        }
     }
 
     private void handleDynamicBean(Object bean, String beanName) {
@@ -129,36 +171,6 @@ public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
             prefix = properties.value();
         }
         DYNAMIC_CONFIG_PROPS_BINDER_MAP.putIfAbsent(prefix, new ValueBeanFieldBinder(null, null, bean, beanName));
-    }
-
-    @EventListener
-    @SuppressWarnings("unchecked")
-    public void handleEvent(ConfigurationChangedEvent event) {
-        try {
-            Map<Object, OriginTrackedValue> prev = (Map<Object, OriginTrackedValue>) event.getPrevious().getSource();
-            Map<Object, OriginTrackedValue> current = (Map<Object, OriginTrackedValue>) event.getCurrent().getSource();
-            Map<Object, Object> diff = getPropertyDiff(prev, current);
-            Map<String, ValueBeanFieldBinder> toRefreshProps = new HashMap<>(4);
-            for (Map.Entry<Object, Object> entry : diff.entrySet()) {
-                String key = entry.getKey().toString();
-                Object val = entry.getValue();
-                processConfigPropsClass(toRefreshProps, key);
-                processValueField(key, val);
-            }
-            toRefreshProps.forEach((beanName, binder) -> {
-                WeakReference<Object> beanRef = binder.getBeanRef();
-                if (beanRef != null && beanRef.get() != null) {
-                    processor.postProcessBeforeInitialization(Objects.requireNonNull(beanRef.get()), beanName);
-                    log.debug("changes detected, re-bind ConfigurationProperties bean: {}", beanName);
-                }
-            });
-            log.info("config changes of {} have been processed", event.getSource());
-        } catch (Exception ex) {
-            log.warn("config changes of {} can not be processed, error:", event.getSource(), ex);
-            if (log.isDebugEnabled()) {
-                log.error("error detail is:", ex);
-            }
-        }
     }
 
     private void processConfigPropsClass(Map<String, ValueBeanFieldBinder> result, String key) {
