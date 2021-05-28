@@ -5,7 +5,7 @@ Make you SpringBoot configuration dynamic, just with one '@DynamicConfig' annota
 #### Compare with spring-cloud-starter-config
 
 - No need for config server
-- No SpringCloud dependency and @RefreshScope annotation
+- No SpringCloud dependency and @RefreshScope annotation, won't destroy and rebuild beans
 
 #### Compare with Alibaba Nacos / Ctripcorp Apollo
 - No need for Nacos/Apollo server
