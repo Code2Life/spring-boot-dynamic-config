@@ -2,20 +2,20 @@
 
 一个注解实现SpringBoot应用的动态配置。
 
-#### 对比 spring-cloud-starter-config
+#### 相比于spring-cloud-starter-config：
 
 - 不需要SpringCloud ConfigServer配置中心服务
-- 不需要SpringCloud依赖，不需要@RefreshScope注解
+- 不需要SpringCloud依赖，不需要@RefreshScope注解，不会重建Spring Bean
 
-#### 对比阿里Nacos/携程Apollo
+#### 相比于阿里Nacos/携程Apollo：
 - 不需要配置中心服务器
 - 不需要学习额外的注解和SDK API
 
 #### 亮点
 
-- 无侵入，兼容SpringBoot原生的配置获取方式
-- 超轻量, 不依赖任何SpringBoot核心库以外的三方库
-- 极易使用, 只提供一个简单的注解: @DynamicConfig；一个事件：ConfigurationChangedEvent
+- **无侵入**，完全兼容SpringBoot原生的配置获取方式（@Value / @ConfigurationProperties）
+- **超轻量**, 不依赖SpringBoot核心库以外的任何三方库
+- **极易使用**, 只提供一个简单的注解: @DynamicConfig；一个事件：ConfigurationChangedEvent
 
 ## 快速开始
 
@@ -39,7 +39,7 @@ implementation 'top.code2life:spring-boot-dynamic-config:1.0.1'
 
 ### 步骤二：在代码中添加 @DynamicConfig 注解
 
-使用方法1: 在包含@Value成员的类上添加 @DynamicConfig。
+**使用方法1: 在包含@Value成员的类上添加 @DynamicConfig。**
 
 ```java
 import lombok.Data;
@@ -79,7 +79,7 @@ public class DynamicFeatures {
 //   transform-b: 10
 ```
 
-使用方法2: 在有 @ConfigurationProperties 注解的类上添加 @DynamicConfig。
+**使用方法2: 在有 @ConfigurationProperties 注解的类上添加 @DynamicConfig。**
 
 ```java
 import lombok.Data;
@@ -117,7 +117,7 @@ public class TestConfigurationProperties {
 java -jar your-spring-boot-app.jar --spring.config.location=/path/to/config
 ```
 
-启动后任何配置路径下的文件修改（/path/to/config/application-xxx.yml）都会在**注有@DynamicConfig的Spring Bean里立即生效**，getter方法可以直接获取到最新配置值。
+启动后配置路径下的**任何文件修改**（/path/to/config/application-xxx.yml）都会在**相关联的注有@DynamicConfig的Spring Bean里立即生效**，getter方法可以直接获取到最新配置值。
 
 ### 配置管理的最佳实践
 - 以代码的方式管理配置，Everything as Code；
