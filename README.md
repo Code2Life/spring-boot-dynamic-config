@@ -9,13 +9,13 @@ Make you SpringBoot configuration dynamic, just with one '@DynamicConfig' annota
 
 #### Compare with Alibaba Nacos / Ctripcorp Apollo
 - No need for Nacos/Apollo server
-- No need for leaning Annotations, Client APIs...
+- No need for learning Annotations, Client APIs, etc.
 
 #### Highlights
 
-- Non-intrusive, compatible with SpringBoot native ways
-- Lightweight, depend on nothing but SpringBoot core libs
-- Extremely easy to use, only provide an annotation: @DynamicConfig, an event: ConfigurationChangedEvent
+- **Non-intrusive**, compatible with SpringBoot native ways
+- **Lightweight**, depend on nothing but SpringBoot core libs
+- **Extremely easy to use**, only provide an annotation: @DynamicConfig, an event: ConfigurationChangedEvent
 
 ## Demo
 
