@@ -1,5 +1,11 @@
 ## Spring Boot Dynamic Config
 
+<p align="center">
+<a href="https://github.com/code2life/spring-boot-dynamic-config"><img src="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml/badge.svg" /></a>
+<a href="https://codecov.io/gh/code2life/spring-boot-dynamic-config/"><img src="https://img.shields.io/codecov/c/github/code2life/spring-boot-dynamic-config/main.svg" alt="Coverage Status"></a>
+<a href="https://codebeat.co/projects/github-com-code2life-spring-boot-dynamic-config-main"><img alt="codebeat badge" src="https://codebeat.co/badges/ea7b2127-62f3-45f4-9f38-55f8203c0121" /></a>
+</p>
+
 一个注解实现SpringBoot应用的**动态配置**，配置热重载最简洁的方案。
 
 [English](https://github.com/Code2Life/spring-boot-dynamic-config/blob/main/README.md) [简体中文](https://github.com/Code2Life/spring-boot-dynamic-config/blob/main/README-zh.md)
@@ -156,4 +162,4 @@ java -jar your-spring-boot-app.jar --spring.config.location=/path/to/config
 
 ## 开源许可证
 
-Apache 2.0
+Spring Boot Dynamic Config is Open Source software released under the https://www.apache.org/licenses/LICENSE-2.0.html[Apache 2.0 license].
