@@ -1,8 +1,13 @@
 ## Spring Boot Dynamic Config
 
-Make you SpringBoot configuration dynamic, just with one '@DynamicConfig' annotation, the simplest solution, ever.
+Hot-reload your SpringBoot configurations, with just a '@DynamicConfig' annotation, the simplest solution, ever.
 
 [English](https://github.com/Code2Life/spring-boot-dynamic-config/blob/main/README.md) [简体中文](https://github.com/Code2Life/spring-boot-dynamic-config/blob/main/README-zh.md)
+
+- :heart: **Non-intrusive**, compatible with SpringBoot native ways (@Value, @ConfigurationProperties)
+- :zap: **Lightweight & Blazing Fast**, depend on nothing but SpringBoot core libs
+- :grinning: **Extremely easy to use**, only provide an annotation: @DynamicConfig, an event: ConfigurationChangedEvent
+
 
 #### Compare with spring-cloud-starter-config
 
@@ -12,12 +17,6 @@ Make you SpringBoot configuration dynamic, just with one '@DynamicConfig' annota
 #### Compare with Alibaba Nacos / Ctripcorp Apollo
 - No need for Nacos/Apollo server
 - No need for learning Annotations, Client APIs, etc.
-
-#### Highlights
-
-- :sun_with_face: **Non-intrusive**, compatible with SpringBoot native ways
-- :zap: **Lightweight**, depend on nothing but SpringBoot core libs
-- :grinning: **Extremely easy to use**, only provide an annotation: @DynamicConfig, an event: ConfigurationChangedEvent
 
 ## Demo
 

@@ -1,8 +1,12 @@
 ## Spring Boot Dynamic Config
 
-一个注解实现SpringBoot应用的动态配置。
+一个注解实现SpringBoot应用的**动态配置**，配置热重载最简洁的方案。
 
 [English](https://github.com/Code2Life/spring-boot-dynamic-config/blob/main/README.md) [简体中文](https://github.com/Code2Life/spring-boot-dynamic-config/blob/main/README-zh.md)
+
+- :heart: **无侵入**，完全兼容SpringBoot原生的配置获取方式（@Value / @ConfigurationProperties）
+- :zap: **超轻量，超快响应**, 不依赖SpringBoot核心库以外的任何三方库
+- :grinning: **极易使用**, 只提供一个简单的注解: @DynamicConfig；一个事件：ConfigurationChangedEvent
 
 #### 相比于spring-cloud-starter-config：
 
@@ -13,11 +17,7 @@
 - 不需要配置中心服务器
 - 不需要学习额外的注解和SDK API
 
-#### 亮点
-
-- :sun_with_face: **无侵入**，完全兼容SpringBoot原生的配置获取方式（@Value / @ConfigurationProperties）
-- :zap: **超轻量**, 不依赖SpringBoot核心库以外的任何三方库
-- :grinning: **极易使用**, 只提供一个简单的注解: @DynamicConfig；一个事件：ConfigurationChangedEvent
+## 演示
 
 ## 快速开始
 
