@@ -1,105 +1,105 @@
 buildscript {
-	ext {
-		springBootVersion = '2.4.5'
-	}
+    ext {
+        springBootVersion = '2.4.5'
+    }
 }
 plugins {
-	id 'java-library'
-	id 'maven-publish'
-	id 'signing'
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
 }
 
 java {
-	withJavadocJar()
-	withSourcesJar()
+    withJavadocJar()
+    withSourcesJar()
 }
 
 group = 'top.code2life'
-version = '1.0.3-SNAPSHOT'
+version = '1.0.3'
 sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	compileOnly 'org.projectlombok:lombok:1.18.20'
-	annotationProcessor 'org.projectlombok:lombok:1.18.20'
-	compileOnly "org.springframework.boot:spring-boot-starter:${springBootVersion}"
+    compileOnly 'org.projectlombok:lombok:1.18.20'
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
+    compileOnly "org.springframework.boot:spring-boot-starter:${springBootVersion}"
 
-	testCompileOnly 'org.projectlombok:lombok:1.18.20'
-	testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
-	testImplementation('org.junit.jupiter:junit-jupiter:5.7.1')
-	testImplementation 'org.yaml:snakeyaml:1.28'
-	testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testCompileOnly 'org.projectlombok:lombok:1.18.20'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
+    testImplementation('org.junit.jupiter:junit-jupiter:5.7.1')
+    testImplementation 'org.yaml:snakeyaml:1.28'
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
 }
 
 publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			artifactId = 'spring-boot-dynamic-config'
-			from components.java
-			versionMapping {
-				usage('java-api') {
-					fromResolutionOf('runtimeClasspath')
-				}
-				usage('java-runtime') {
-					fromResolutionResult()
-				}
-			}
-			pom {
-				name = 'spring-boot-dynamic-config'
-				description = 'Enhance SpringBoot application with dynamic configuration ability'
-				url = 'https://github.com/code2life/spring-boot-dynamic-config'
-				licenses {
-					license {
-						name = 'The Apache License, Version 2.0'
-						url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-					}
-				}
-				developers {
-					developer {
-						id = 'code2life'
-						name = 'Joey Yang'
-						email = '569475269@qq.com'
-					}
-				}
-				scm {
-					connection = 'scm:git:https://github.com/code2life/spring-boot-dynamic-config.git'
-					developerConnection = 'scm:git:https://github.com/code2life/spring-boot-dynamic-config.git'
-					url = 'https://github.com/code2life/spring-boot-dynamic-config'
-				}
-			}
-		}
-	}
-	repositories {
-		maven {
-			// change URLs to point to your repos, e.g. http://my.org/repo
-			def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
-			def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots"
-			url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-			credentials {
-				username ossrhUsername
-				password ossrhPassword
-			}
-		}
-	}
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'spring-boot-dynamic-config'
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'spring-boot-dynamic-config'
+                description = 'Enhance SpringBoot application with dynamic configuration ability'
+                url = 'https://github.com/code2life/spring-boot-dynamic-config'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'code2life'
+                        name = 'Joey Yang'
+                        email = '569475269@qq.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/code2life/spring-boot-dynamic-config.git'
+                    developerConnection = 'scm:git:https://github.com/code2life/spring-boot-dynamic-config.git'
+                    url = 'https://github.com/code2life/spring-boot-dynamic-config'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            // change URLs to point to your repos, e.g. http://my.org/repo
+            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username = System.getenv('ossrhUsername') ?: "${ossrhUsername}"
+                password = System.getenv('ossrhPassword') ?: "${ossrhPassword}"
+            }
+        }
+    }
 }
 
 signing {
-	sign publishing.publications.mavenJava
+    sign publishing.publications.mavenJava
 }
 
 javadoc {
-	if(JavaVersion.current().isJava9Compatible()) {
-		options.addBooleanOption('html5', true)
-	}
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
 }
 
 test {
-	useJUnitPlatform()
-	ignoreFailures = false
-	testLogging {
-		exceptionFormat = 'full'
-	}
+    useJUnitPlatform()
+    ignoreFailures = false
+    testLogging {
+        exceptionFormat = 'full'
+    }
 }
