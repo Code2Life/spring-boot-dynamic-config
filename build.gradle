@@ -7,6 +7,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
+    id 'jacoco'
 }
 
 java {
@@ -99,7 +100,19 @@ javadoc {
 test {
     useJUnitPlatform()
     ignoreFailures = false
+    finalizedBy jacocoTestReport
     testLogging {
         exceptionFormat = 'full'
+    }
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.enabled true
+        xml.destination file("${buildDir}/reports/jacoco/report.xml")
+        csv.enabled false
+        html.enabled true
+        html.destination layout.buildDirectory.dir('jacocoHtml').get().asFile
     }
 }

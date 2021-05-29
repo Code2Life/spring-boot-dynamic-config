@@ -1,6 +1,5 @@
 package top.code2life.config;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.TypeConverter;
@@ -22,7 +21,6 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -139,27 +137,17 @@ public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
             clazz = clazz.getSuperclass();
         }
         Field[] fields = clazz.getDeclaredFields();
+        // handle @ConfigurationProperties beans
         boolean clazzLevelDynamicConf = clazz.isAnnotationPresent(DynamicConfig.class);
         if (clazzLevelDynamicConf && clazz.isAnnotationPresent(ConfigurationProperties.class)) {
             bindConfigurationProperties(clazz, bean, beanName);
             return;
         }
-        for (Field f : fields) {
-            boolean isDynamic = f.isAnnotationPresent(Value.class) && (clazzLevelDynamicConf || f.isAnnotationPresent(DynamicConfig.class));
+        // handle beans contains @Value + @DynamicConfig annotations
+        for (Field field : fields) {
+            boolean isDynamic = field.isAnnotationPresent(Value.class) && (clazzLevelDynamicConf || field.isAnnotationPresent(DynamicConfig.class));
             if (isDynamic) {
-                String valueExpr = f.getAnnotation(Value.class).value();
-                if (valueExpr.startsWith(VALUE_EXPR_PREFIX) || valueExpr.startsWith(SP_EL_PREFIX)) {
-                    List<String> propKeyList = extractValueFromExpr(valueExpr);
-                    for (String key : propKeyList) {
-                        if (!DYNAMIC_FIELD_BINDER_MAP.containsKey(key)) {
-                            DYNAMIC_FIELD_BINDER_MAP.putIfAbsent(key, Collections.synchronizedList(new ArrayList<>(2)));
-                        }
-                        DYNAMIC_FIELD_BINDER_MAP.get(key).add(new ValueBeanFieldBinder(valueExpr, f, bean, beanName));
-                    }
-                    if (propKeyList.size() > 0 && log.isDebugEnabled()) {
-                        log.debug("dynamic config annotation found on class: {}, field: {}, prop: {}", clazz.getName(), f.getName(), String.join(",", propKeyList));
-                    }
-                }
+                collectionValueAnnotationMetadata(bean, beanName, clazz, field);
             }
         }
     }
@@ -171,6 +159,23 @@ public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
             prefix = properties.value();
         }
         DYNAMIC_CONFIG_PROPS_BINDER_MAP.putIfAbsent(prefix, new ValueBeanFieldBinder(null, null, bean, beanName));
+    }
+
+    private void collectionValueAnnotationMetadata(Object bean, String beanName, Class<?> clazz, Field field) {
+        String valueExpr = field.getAnnotation(Value.class).value();
+        if (!valueExpr.startsWith(VALUE_EXPR_PREFIX) && !valueExpr.startsWith(SP_EL_PREFIX)) {
+            return;
+        }
+        List<String> propKeyList = extractValueFromExpr(valueExpr);
+        for (String key : propKeyList) {
+            if (!DYNAMIC_FIELD_BINDER_MAP.containsKey(key)) {
+                DYNAMIC_FIELD_BINDER_MAP.putIfAbsent(key, Collections.synchronizedList(new ArrayList<>(2)));
+            }
+            DYNAMIC_FIELD_BINDER_MAP.get(key).add(new ValueBeanFieldBinder(valueExpr, field, bean, beanName));
+        }
+        if (propKeyList.size() > 0 && log.isDebugEnabled()) {
+            log.debug("dynamic config annotation found on class: {}, field: {}, prop: {}", clazz.getName(), field.getName(), String.join(",", propKeyList));
+        }
     }
 
     private void processConfigPropsClass(Map<String, ValueBeanFieldBinder> result, String key) {
@@ -191,20 +196,23 @@ public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
         List<ValueBeanFieldBinder> valueFieldBinders = DYNAMIC_FIELD_BINDER_MAP.get(key);
         for (ValueBeanFieldBinder binder : valueFieldBinders) {
             Object bean = binder.getBeanRef().get();
-            if (bean != null) {
-                Field field = binder.getDynamicField();
-                field.setAccessible(true);
-                String expr = binder.getExpr();
-                String newExpr = beanFactory.resolveEmbeddedValue(expr);
-                Object setVal = val;
-                if (expr.startsWith(SP_EL_PREFIX)) {
-                    setVal = exprResolver.evaluate(newExpr, exprContext);
-                }
-                field.set(bean, convertIfNecessary(field, setVal));
-                if (log.isDebugEnabled()) {
-                    log.debug("dynamic config found, set field: '{}' of class: '{}' with new value: {}", field.getName(), bean.getClass().getSimpleName(), setVal);
-                }
+            if (bean == null) {
+                continue;
             }
+            Field field = binder.getDynamicField();
+            field.setAccessible(true);
+            String expr = binder.getExpr();
+            String newExpr = beanFactory.resolveEmbeddedValue(expr);
+            if (expr.startsWith(SP_EL_PREFIX)) {
+                Object evaluatedVal = exprResolver.evaluate(newExpr, exprContext);
+                field.set(bean, convertIfNecessary(field, evaluatedVal));
+            } else {
+                field.set(bean, convertIfNecessary(field, val));
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("dynamic config found, set field: '{}' of class: '{}' with new value", field.getName(), bean.getClass().getSimpleName());
+            }
+
         }
     }
 
@@ -220,15 +228,11 @@ public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
             if (prev.containsKey(k)) {
                 if (!Objects.equals(v, prev.get(k))) {
                     diff.put(k, v.getValue());
-                    if (log.isDebugEnabled()) {
-                        log.debug("found changed key of dynamic config: {}", k);
-                    }
+                    log.debug("found changed key of dynamic config: {}", k);
                 }
             } else {
                 diff.put(k, v.getValue());
-                if (log.isDebugEnabled()) {
-                    log.debug("found new added key of dynamic config: {}", k);
-                }
+                log.debug("found new added key of dynamic config: {}", k);
             }
         }
         return diff;
@@ -261,26 +265,5 @@ public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
         }
         matcher.appendTail(result);
         return result.toString().replaceAll("_", "-").toLowerCase(Locale.ENGLISH);
-    }
-
-    @Data
-    static class ValueBeanFieldBinder {
-
-        private String expr;
-
-        private WeakReference<Object> beanRef;
-
-        private Field dynamicField;
-
-        private String beanName;
-
-        private Method binder;
-
-        ValueBeanFieldBinder(String expr, Field dynamicField, Object bean, String beanName) {
-            this.beanRef = new WeakReference<>(bean);
-            this.expr = expr;
-            this.dynamicField = dynamicField;
-            this.beanName = beanName;
-        }
     }
 }

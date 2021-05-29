@@ -19,10 +19,10 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestPropertySource(
-        properties = {"spring.config.location=" + DynamicConfigStarterTests.CONFIG_LOCATION}
+        properties = {"spring.config.location=" + DynamicConfigTests.CONFIG_LOCATION}
 )
 @SpringBootTest(classes = {TestApplication.class})
-public class DynamicConfigStarterTests {
+public class DynamicConfigTests {
 
     public static final String CONFIG_LOCATION = "./build/resources/test/";
 
@@ -135,8 +135,7 @@ public class DynamicConfigStarterTests {
         Thread.sleep(1000);
 
         assertTrue(featureGate.isFeatureEnabled(testComponent.getSomeBetaFeatureConfig(), testVal));
-
-        assertTrue(!featureGate.isFeatureEnabled(testVal));
+        assertFalse(featureGate.isFeatureEnabled(testVal));
         data.put(testVal, "True");
         writeYmlData(data, "application-dynamic.yml");
         Thread.sleep(1000);

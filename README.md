@@ -1,5 +1,8 @@
 ## Spring Boot Dynamic Config
+<p align="center">
+<a href="https://codecov.io/gh/code2life/spring-boot-dynamic-config/"><img src="https://img.shields.io/codecov/c/github/code2life/spring-boot-dynamic-config/main.svg" alt="Coverage Status"></a>
 
+</p>
 Hot-reload your SpringBoot configurations, with just a '@DynamicConfig' annotation, the simplest solution, ever.
 
 [English](https://github.com/Code2Life/spring-boot-dynamic-config/blob/main/README.md) [简体中文](https://github.com/Code2Life/spring-boot-dynamic-config/blob/main/README-zh.md)

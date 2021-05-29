@@ -1,7 +1,5 @@
 package top.code2life.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,9 +60,13 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
         closeConfigDirectoryWatch();
     }
 
+    public void setConfigLocation(String path) {
+        this.configLocation = path;
+    }
+
     @PostConstruct
     @SuppressWarnings("AlibabaThreadPoolCreation")
-    private void watchConfigDirectory() {
+    public void watchConfigDirectory() {
         if (!StringUtils.hasText(configLocation)) {
             log.info("no spring.config.location configured, file watch will not start.");
             return;
@@ -117,11 +119,6 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
     private void reloadChangedFile(Path path) {
         Path absPath = null;
         try {
-            String extension = "";
-            int i = path.toString().lastIndexOf('.');
-            if (i > 0) {
-                extension = path.toString().substring(i + 1);
-            }
             absPath = Paths.get(configLocation, path.toString());
             String absPathStr = absPath.toString();
             // remove ./ or .\ at the beginning of the path
@@ -137,28 +134,37 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
             long currentModTs = Files.getLastModifiedTime(absPath).toMillis();
             long mdt = propertySourceMeta.getLastModifyTime();
             if (mdt != currentModTs) {
-                log.info("config file has been changed: {}", path);
-                String propertySourceName = propertySourceMeta.getPropertySource().getName();
-                ConfigurationChangedEvent event = new ConfigurationChangedEvent(absPathStr);
-                FileSystemResource resource = new FileSystemResource(absPath.toString());
-                for (PropertySourceLoader loader : propertyLoaders) {
-                    if (Arrays.asList(loader.getFileExtensions()).contains(extension)) {
-                        // use this loader to load config resource
-                        List<PropertySource<?>> newPropsList = loader.load(propertySourceName, resource);
-                        if (newPropsList.size() >= 1) {
-                            PropertySource<?> newProps = newPropsList.get(0);
-                            event.setPrevious(env.getPropertySources().get(propertySourceName));
-                            event.setCurrent(newProps);
-                            env.getPropertySources().replace(propertySourceName, newProps);
-                            propertySourceMeta.setLastModifyTime(currentModTs);
-                            eventPublisher.publishEvent(event);
-                        }
-                        break;
-                    }
-                }
+                doReloadConfigFile(propertySourceMeta, absPathStr, currentModTs);
             }
         } catch (Exception ex) {
             log.error("reload configuration file {} failed: ", absPath, ex);
+        }
+    }
+
+    private void doReloadConfigFile(PropertySourceMeta propertySourceMeta, String path, long modifyTime) throws IOException {
+        log.info("config file has been changed: {}", path);
+        String extension = "";
+        int i = path.lastIndexOf('.');
+        if (i > 0) {
+            extension = path.substring(i + 1);
+        }
+        String propertySourceName = propertySourceMeta.getPropertySource().getName();
+        ConfigurationChangedEvent event = new ConfigurationChangedEvent(path);
+        FileSystemResource resource = new FileSystemResource(path);
+        for (PropertySourceLoader loader : propertyLoaders) {
+            if (Arrays.asList(loader.getFileExtensions()).contains(extension)) {
+                // use this loader to load config resource
+                List<PropertySource<?>> newPropsList = loader.load(propertySourceName, resource);
+                if (newPropsList.size() >= 1) {
+                    PropertySource<?> newProps = newPropsList.get(0);
+                    event.setPrevious(env.getPropertySources().get(propertySourceName));
+                    event.setCurrent(newProps);
+                    env.getPropertySources().replace(propertySourceName, newProps);
+                    propertySourceMeta.setLastModifyTime(modifyTime);
+                    eventPublisher.publishEvent(event);
+                }
+                break;
+            }
         }
     }
 
@@ -171,17 +177,5 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
                 log.warn("can not close config directory watcher. ", e);
             }
         }
-    }
-
-    @Data
-    @AllArgsConstructor
-    private static class PropertySourceMeta {
-
-        private PropertySource<?> propertySource;
-
-        private Path filePath;
-
-        private long lastModifyTime;
-
     }
 }
