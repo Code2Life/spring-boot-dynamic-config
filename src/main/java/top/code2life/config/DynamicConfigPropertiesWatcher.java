@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
-import java.util.stream.StreamSupport;
 
 /**
  * Enhance PropertySource when spring.config.location is specified, it will start directory-watch,
@@ -72,32 +71,35 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
             return;
         }
         MutablePropertySources propertySources = env.getPropertySources();
-        StreamSupport.stream(propertySources.spliterator(), false)
-                .filter(ps -> ps.getName().matches(FILE_SOURCE_CONFIGURATION_PATTERN) || ps.getName().matches(FILE_SOURCE_CONFIGURATION_PATTERN_LEGACY))
-                .forEach(ps -> {
-                    String name = ps.getName();
-                    int beginIndex = name.indexOf("[") + 1;
-                    int endIndex = name.indexOf("]");
-                    if (beginIndex < 1 && endIndex < 1) {
-                        log.warn("unrecognized config location, property source name is: {}", name);
-                    }
-                    String pathStr = name.substring(beginIndex, endIndex);
-                    if (pathStr.contains(FILE_COLON_SYMBOL)) {
-                        pathStr = pathStr.replace(FILE_COLON_SYMBOL, "");
-                    }
-                    PROPERTY_SOURCE_META_MAP.put(pathStr.replaceAll("\\\\", "/"), new PropertySourceMeta(ps, Paths.get(pathStr), 0L));
-                    if (log.isDebugEnabled()) {
-                        log.debug("configuration file found: {}", pathStr);
-                    }
-                });
+        for (PropertySource<?> ps : propertySources) {
+            boolean isFilePropSource = ps.getName().matches(FILE_SOURCE_CONFIGURATION_PATTERN_LEGACY) || ps.getName().matches(FILE_SOURCE_CONFIGURATION_PATTERN);
+            if (isFilePropSource) {
+                normalizeAndRecordPropSource(ps);
+            }
+        }
         Executors.newSingleThreadExecutor(r -> new Thread(r, "config-watcher")).submit(this::startWatchDir);
+    }
+
+    private void normalizeAndRecordPropSource(PropertySource<?> ps) {
+        String name = ps.getName();
+        int beginIndex = name.indexOf("[") + 1;
+        int endIndex = name.indexOf("]");
+        if (beginIndex < 1 && endIndex < 1) {
+            log.warn("unrecognized config location, property source name is: {}", name);
+        }
+        String pathStr = name.substring(beginIndex, endIndex);
+        if (pathStr.contains(FILE_COLON_SYMBOL)) {
+            pathStr = pathStr.replace(FILE_COLON_SYMBOL, "");
+        }
+        PROPERTY_SOURCE_META_MAP.put(pathStr.replaceAll("\\\\", "/"), new PropertySourceMeta(ps, Paths.get(pathStr), 0L));
+        log.debug("configuration file found: {}", pathStr);
     }
 
     private void startWatchDir() {
         try {
             log.info("start watching configuration directory: {}", configLocation);
             watchService = FileSystems.getDefault().newWatchService();
-            Paths.get(configLocation).register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+            Paths.get(configLocation).register(watchService, StandardWatchEventKinds.ENTRY_MODIFY, StandardWatchEventKinds.ENTRY_CREATE);
             WatchKey key;
             while ((key = watchService.take()) != null) {
                 // avoid receiving two ENTRY_MODIFY events: file modified and timestamp updated

@@ -100,9 +100,7 @@ public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
     @SuppressWarnings("unchecked")
     public void handleEvent(ConfigurationChangedEvent event) {
         try {
-            Map<Object, OriginTrackedValue> prev = (Map<Object, OriginTrackedValue>) event.getPrevious().getSource();
-            Map<Object, OriginTrackedValue> current = (Map<Object, OriginTrackedValue>) event.getCurrent().getSource();
-            Map<Object, Object> diff = getPropertyDiff(prev, current);
+            Map<Object, Object> diff = getPropertyDiff((Map<Object, OriginTrackedValue>) event.getPrevious().getSource(), (Map<Object, OriginTrackedValue>) event.getCurrent().getSource());
             Map<String, ValueBeanFieldBinder> toRefreshProps = new HashMap<>(4);
             for (Map.Entry<Object, Object> entry : diff.entrySet()) {
                 String key = entry.getKey().toString();
