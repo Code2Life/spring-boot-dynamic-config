@@ -1,9 +1,10 @@
-## Spring Boot Dynamic Config
 <p align="center">
 <a href="https://github.com/code2life/spring-boot-dynamic-config"><img src="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml/badge.svg" /></a>
 <a href="https://codecov.io/gh/code2life/spring-boot-dynamic-config/"><img src="https://img.shields.io/codecov/c/github/code2life/spring-boot-dynamic-config/main.svg" alt="Coverage Status"></a>
 <a href="https://codebeat.co/projects/github-com-code2life-spring-boot-dynamic-config-main"><img alt="codebeat badge" src="https://codebeat.co/badges/ea7b2127-62f3-45f4-9f38-55f8203c0121" /></a>
 </p>
+
+## Spring Boot Dynamic Config
 
 Hot-reload your SpringBoot configurations, with just a '@DynamicConfig' annotation, the simplest solution, ever.
 

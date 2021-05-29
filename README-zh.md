@@ -1,10 +1,10 @@
-## Spring Boot Dynamic Config
-
 <p align="center">
 <a href="https://github.com/code2life/spring-boot-dynamic-config"><img src="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml/badge.svg" /></a>
 <a href="https://codecov.io/gh/code2life/spring-boot-dynamic-config/"><img src="https://img.shields.io/codecov/c/github/code2life/spring-boot-dynamic-config/main.svg" alt="Coverage Status"></a>
 <a href="https://codebeat.co/projects/github-com-code2life-spring-boot-dynamic-config-main"><img alt="codebeat badge" src="https://codebeat.co/badges/ea7b2127-62f3-45f4-9f38-55f8203c0121" /></a>
 </p>
+
+## Spring Boot Dynamic Config
 
 一个注解实现SpringBoot应用的**动态配置**，配置热重载最简洁的方案。
 
@@ -20,6 +20,7 @@
 - 不需要SpringCloud依赖，不需要@RefreshScope注解，不会重建Spring Bean
 
 #### 相比于阿里Nacos/携程Apollo：
+
 - 不需要配置中心服务器
 - 不需要学习额外的注解和SDK API
 
@@ -32,6 +33,7 @@
 Maven
 
 ```xml
+
 <dependency>
     <groupId>top.code2life</groupId>
     <artifactId>spring-boot-dynamic-config</artifactId>
@@ -104,9 +106,9 @@ import java.util.Map;
 public class TestConfigurationProperties {
 
     private String str;
-    
+
     private Double doubleVal;
-    
+
     private Map<String, Object> mapVal;
 }
 
@@ -125,9 +127,11 @@ public class TestConfigurationProperties {
 java -jar your-spring-boot-app.jar --spring.config.location=/path/to/config
 ```
 
-启动后配置路径下的**任何文件修改**（/path/to/config/application-xxx.yml）都会在**相关联的注有@DynamicConfig的Spring Bean里立即生效**，getter方法可以直接获取到最新配置值。
+启动后配置路径下的**任何文件修改**（/path/to/config/application-xxx.yml）都会在**相关联的注有@DynamicConfig的Spring Bean里立即生效**
+，getter方法可以直接获取到最新配置值。
 
 ### 配置管理的最佳实践
+
 - 以代码的方式管理配置，Everything as Code；
 - Git是维护配置信息的最佳版本控制系统，绝大多数应用，不需要配置管理中心这样的系统；
 - 配置由**持续集成系统自动化部署**到开发/产线环境，而不是登陆到某个系统，手动输入配置值；
@@ -138,7 +142,8 @@ java -jar your-spring-boot-app.jar --spring.config.location=/path/to/config
 1. 使用 --spring.config.location 参数启动时，初始化 DynamicConfigPropertiesWatcher 这个Bean；
 2. 与此同时，初始化 DynamicConfigBeanPostProcessor 这个BeanPostProcessor，用来处理 @DynamicConfig；
 3. DynamicConfigBeanPostProcessor 收集所有带有 @DynamicConfig 注解的Bean的元数据，包括Bean的名称、实例、@Value成员变量等等；
-4. DynamicConfigPropertiesWatcher 开始监听 spring.config.location 目录下所有的文件变动，对于变化的Yaml/Properties，生成PropertySource动态替换Environment Bean中的PropertySource；
+4. DynamicConfigPropertiesWatcher 开始监听 spring.config.location
+   目录下所有的文件变动，对于变化的Yaml/Properties，生成PropertySource动态替换Environment Bean中的PropertySource；
 5. DynamicConfigPropertiesWatcher 在ApplicationContext中发布配置变动的Event：ConfigurationChangedEvent；
 6. DynamicConfigBeanPostProcessor 订阅了上述事件，计算变动的文件，对哪些Key造成了差异
 7. 对于每个有差异的Property Key, DynamicConfigBeanPostProcessor 比对记录的Bean元数据，找到相关联的Bean
@@ -156,10 +161,12 @@ java -jar your-spring-boot-app.jar --spring.config.location=/path/to/config
 - √ SpringBoot 2.0.x
 - X SpringBoot 1.5.x 及以下，不支持
 
-注意: 
+注意:
+
 - SpringBoot 2.0.x中不能使用JUnit5，只能使用JUnit4，因此在Spring 2.0.x版本跑本仓库里的单元测试，需要切换到JUnit4
 - spring-boot-dynamic-config仅包含spring-boot库的编译依赖，不依赖任何其他三方库
 
 ## 开源许可证
 
-Spring Boot Dynamic Config is Open Source software released under the https://www.apache.org/licenses/LICENSE-2.0.html[Apache 2.0 license].
+Spring Boot Dynamic Config is Open Source software released under
+the https://www.apache.org/licenses/LICENSE-2.0.html[Apache 2.0 license].
