@@ -5,6 +5,6 @@ import org.springframework.context.annotation.Import;
 /**
  * @author Code2Life
  */
-@Import({DynamicConfigPropertiesWatcher.class, DynamicConfigBeanPostProcessor.class, FeatureGate.class})
+@Import({DynamicConfigPropertiesWatcher.class, DynamicConfigBeanPostProcessor.class, FeatureGate.class, ConfigurationChangedEventHandler.class})
 public class DynamicConfigAutoConfiguration {
 }
