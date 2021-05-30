@@ -1,10 +1,12 @@
-<p align="center">
-<a href="https://github.com/code2life/spring-boot-dynamic-config"><img src="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml/badge.svg" /></a>
-<a href="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml">coverage<img src=".github/badges/jacoco.svg" /></a>
-<a href="https://codebeat.co/projects/github-com-code2life-spring-boot-dynamic-config-main"><img alt="codebeat badge" src="https://codebeat.co/badges/ea7b2127-62f3-45f4-9f38-55f8203c0121" /></a>
-</p>
-
 ## Spring Boot Dynamic Config
+
+<p align="left">
+<br>
+<a href="https://github.com/code2life/spring-boot-dynamic-config"><img src="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml/badge.svg" /></a>
+<a href="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml"><img src=".github/badges/jacoco.svg" /></a>
+<a href="https://codebeat.co/projects/github-com-code2life-spring-boot-dynamic-config-main"><img alt="codebeat badge" src="https://codebeat.co/badges/ea7b2127-62f3-45f4-9f38-55f8203c0121" /></a>
+<br>
+</p>
 
 一个注解实现SpringBoot应用的**动态配置**，配置热重载最简洁的方案。
 
@@ -13,7 +15,7 @@
 - :heart: **无侵入**，完全兼容SpringBoot原生的配置获取方式（@Value / @ConfigurationProperties）
 - :zap: **超轻量，超快响应**, 不依赖SpringBoot核心库以外的任何三方库
 - :grinning: **极易使用**, 只提供一个简单的注解: @DynamicConfig；一个事件：ConfigurationChangedEvent
-- ☸ 在K8S集群中运行SpringBoot/SpringCloud应用，与K8S ConfigMap完美结合的方案
+- ☸ 在K8S集群中和K8S ConfigMap完美结合的SpringBoot/SpringCloud应用的动态配置方式
 
 #### 相比于spring-cloud-starter-config：
 
@@ -26,6 +28,8 @@
 - 不需要学习额外的注解和SDK API
 
 ## 演示
+
+<img src="example/demo.gif" alt="Demo" />
 
 ## 快速开始
 

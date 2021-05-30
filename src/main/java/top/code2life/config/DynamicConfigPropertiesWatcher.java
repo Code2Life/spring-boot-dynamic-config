@@ -59,10 +59,9 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
         closeConfigDirectoryWatch();
     }
 
-    public void setConfigLocation(String path) {
-        this.configLocation = path;
-    }
-
+    /**
+     * Watch config directory after initializing, using WatchService API
+     */
     @PostConstruct
     @SuppressWarnings("AlibabaThreadPoolCreation")
     public void watchConfigDirectory() {
@@ -78,6 +77,15 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
             }
         }
         Executors.newSingleThreadExecutor(r -> new Thread(r, "config-watcher")).submit(this::startWatchDir);
+    }
+
+    /**
+     * change config location, only for test usage
+     *
+     * @param path file path
+     */
+    void setConfigLocation(String path) {
+        this.configLocation = path;
     }
 
     private void normalizeAndRecordPropSource(PropertySource<?> ps) {

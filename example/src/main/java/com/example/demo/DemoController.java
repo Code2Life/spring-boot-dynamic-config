@@ -1,15 +1,14 @@
 package com.example.demo;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import top.code2life.config.DynamicConfig;
 import top.code2life.config.FeatureGate;
 
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Code2Life
@@ -19,10 +18,6 @@ import java.util.Set;
 public class DemoController {
 
 
-    @DynamicConfig
-    @Value("#{@featureGate.convert('${some.feature.beta-list}')}")
-    private Set<String> betaUserList;
-
     private final DemoConfigProperties demoConfigProps;
 
     private final DemoDynamicValue demoDynamicValue;
@@ -31,23 +26,14 @@ public class DemoController {
 
     @RequestMapping(value = "/demo", method = RequestMethod.GET)
     public Object getDemoConfigProps() {
-        DemoConfigProperties resp = new DemoConfigProperties();
-        resp.setStr(demoConfigProps.getStr());
-        resp.setListVal(demoConfigProps.getListVal());
-        resp.setMapVal(demoConfigProps.getMapVal());
-        resp.setNestedList(demoConfigProps.getNestedList());
-        resp.setNestedMap(demoConfigProps.getNestedMap());
-        resp.setNested(demoConfigProps.getNested());
+        Map<String, Object> resp = new HashMap<>(4);
+        DemoConfigProperties configurationProps = new DemoConfigProperties();
+        BeanUtils.copyProperties(demoConfigProps, configurationProps);
+        resp.put("valuePlaceHolder", demoDynamicValue.getDynamicHello());
+        resp.put("valueSpringEL", demoDynamicValue.getBetaUserList());
+        resp.put("someUserInWhiteList", featureGate.isFeatureEnabled(demoDynamicValue.getBetaUserList(), "user4"));
+        resp.put("betaFeatureEnabled", featureGate.isFeatureEnabled("beta.enabled"));
+        resp.put("configurationPropertiesObj", configurationProps);
         return resp;
-    }
-
-    @RequestMapping(value = "/demo2", method = RequestMethod.GET)
-    public String getDemoConfig2() {
-        return demoDynamicValue.getDynamicHello();
-    }
-
-    @RequestMapping(value = "/demo3", method = RequestMethod.GET)
-    public boolean isUserInBetaList(@RequestParam String id) {
-        return featureGate.isFeatureEnabled(betaUserList, id);
     }
 }

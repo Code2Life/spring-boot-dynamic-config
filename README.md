@@ -1,10 +1,12 @@
-<p align="center">
-<a href="https://github.com/code2life/spring-boot-dynamic-config"><img src="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml/badge.svg" /></a>
-<a href="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml">coverage<img src=".github/badges/jacoco.svg" /></a>
-<a href="https://codebeat.co/projects/github-com-code2life-spring-boot-dynamic-config-main"><img alt="codebeat badge" src="https://codebeat.co/badges/ea7b2127-62f3-45f4-9f38-55f8203c0121" /></a>
-</p>
-
 ## Spring Boot Dynamic Config
+
+<p align="left">
+<br>
+<a href="https://github.com/code2life/spring-boot-dynamic-config"><img src="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml/badge.svg" /></a>
+<a href="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml"><img src=".github/badges/jacoco.svg" /></a>
+<a href="https://codebeat.co/projects/github-com-code2life-spring-boot-dynamic-config-main"><img alt="codebeat badge" src="https://codebeat.co/badges/ea7b2127-62f3-45f4-9f38-55f8203c0121" /></a>
+<br>
+</p>
 
 Hot-reload your SpringBoot configurations, with just a '@DynamicConfig' annotation, the simplest solution, ever.
 
@@ -13,8 +15,7 @@ Hot-reload your SpringBoot configurations, with just a '@DynamicConfig' annotati
 - :heart: **Non-intrusive**, compatible with SpringBoot native ways (@Value, @ConfigurationProperties)
 - :zap: **Lightweight & Blazing Fast**, depend on nothing but SpringBoot core libs
 - :grinning: **Extremely easy to use**, only provide an annotation: @DynamicConfig, an event: ConfigurationChangedEvent
-- ☸ Perfect solution for running SpringBoot on Kubernetes, combine with K8S ConfigMap
-
+- ☸ Perfect solution for host-reloading configurations of SpringBoot application on Kubernetes, with K8S ConfigMap
 
 #### Compare with spring-cloud-starter-config
 
@@ -22,10 +23,13 @@ Hot-reload your SpringBoot configurations, with just a '@DynamicConfig' annotati
 - No SpringCloud dependency and @RefreshScope annotation, won't destroy and rebuild beans
 
 #### Compare with Alibaba Nacos / Ctripcorp Apollo
+
 - No need for Nacos/Apollo server
 - No need for learning Annotations, Client APIs, etc.
 
 ## Demo
+
+<img src="example/demo.gif" alt="Demo" />
 
 ## Getting Started
 
@@ -34,6 +38,7 @@ Hot-reload your SpringBoot configurations, with just a '@DynamicConfig' annotati
 Maven
 
 ```xml
+
 <dependency>
     <groupId>top.code2life</groupId>
     <artifactId>spring-boot-dynamic-config</artifactId>
@@ -106,9 +111,9 @@ import java.util.Map;
 public class TestConfigurationProperties {
 
     private String str;
-    
+
     private Double doubleVal;
-    
+
     private Map<String, Object> mapVal;
 }
 
@@ -127,24 +132,27 @@ public class TestConfigurationProperties {
 java -jar your-spring-boot-app.jar --spring.config.location=/path/to/config
 ```
 
-Then, modifications on /path/to/config/application-<some-profile>.yml will take effect and reflect on @DynamicConfig beans **immediately**.
+Then, modifications on /path/to/config/application-<some-profile>.yml will take effect and reflect on @DynamicConfig
+beans **immediately**.
 
 ### Best Practices
+
 - Configuration as Code, Everything as Code
 - Configurations should be maintained in Git, rather than any GUI system.
 - Configurations should be applied to dev/production environments by Continuous Integration system.
-- Git-Based DevOps workflow is the modern way of operating services, at scale. 
+- Git-Based DevOps workflow is the modern way of operating services, at scale.
 
 ## Implementation
 
 1. Bean 'DynamicConfigPropertiesWatcher' will be initialized if 'spring.config.location' is specified
 2. Bean 'DynamicConfigBeanPostProcessor' will be initialized if 'DynamicConfigPropertiesWatcher' exists
-3. DynamicConfigBeanPostProcessor collects beans' metadata after initializing 
+3. DynamicConfigBeanPostProcessor collects beans' metadata after initializing
 4. DynamicConfigPropertiesWatcher watches configuration directory, then replace PropertySource in Environment on changes
 5. DynamicConfigPropertiesWatcher publishes 'ConfigurationChangedEvent'
 6. DynamicConfigBeanPostProcessor listens 'ConfigurationChangedEvent', calculate diff
 7. For each changed key, DynamicConfigBeanPostProcessor will use preserved bean metadata to check if it's related
-8. After filtering related beans, it will use reflect API or ConfigurationPropertiesBindingPostProcessor API to modify fields of existing bean
+8. After filtering related beans, it will use reflect API or ConfigurationPropertiesBindingPostProcessor API to modify
+   fields of existing bean
 
 ## Compatibility
 
@@ -158,10 +166,12 @@ Any SpringBoot/SpringCloud application within following SpringBoot version can u
 - √ SpringBoot 2.0.x
 - X SpringBoot 1.5.x and Lower
 
-NOTES: 
+NOTES:
+
 - For SpringBoot 2.0.x, use Junit4 rather than Junit5.
 - This lib does not depend on ANY other libs except SpringBoot core libs.
 
 ## License
 
-Spring Boot Dynamic Config is Open Source software released under the https://www.apache.org/licenses/LICENSE-2.0.html[Apache 2.0 license].
+Spring Boot Dynamic Config is Open Source software released under
+the https://www.apache.org/licenses/LICENSE-2.0.html[Apache 2.0 license].

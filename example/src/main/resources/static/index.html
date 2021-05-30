@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Spring Boot Dynamic Config</title>
+  <link rel="stylesheet" href="https://cdn.bootcss.com/element-ui/2.12.0/theme-chalk/index.css">
+  <script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+  <script src="https://cdn.bootcss.com/element-ui/2.12.0/index.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+</head>
+
+<body>
+<div id="app" style="margin-top: 100px;">
+  <h1 style="text-align: center">Spring Boot Dynamic Config</h1>
+  <br />
+  <el-row :gutter="20">
+    <el-col :span="20">
+      <el-form ref="form" :model="config" label-width="340px">
+        <el-form-item label="@Value with placeholder">
+          <el-input v-model="config.valuePlaceHolder" read-only/>
+        </el-form-item>
+        <el-form-item label="Simple FeatureGate">
+          <el-radio-group v-model="config.betaFeatureEnabled" read-only>
+            <el-radio :label="false">False</el-radio>
+            <el-radio :label="true">True</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <el-form-item label="@Value + FeatureGate by ID">
+          <el-radio-group v-model="config.someUserInWhiteList" read-only>
+            <el-radio :label="false">False</el-radio>
+            <el-radio :label="true">True</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <el-form-item label="@ConfigurationProperties">
+          <el-input type="textarea" :rows="13" v-model="config.configurationProperties"/>
+        </el-form-item>
+      </el-form>
+    </el-col>
+  </el-row>
+</div>
+<script>
+  new Vue({
+    el: '#app',
+    data: {
+      config: {
+        valuePlaceHolder: "",
+        valueSpringEL: "",
+        betaFeatureEnabled: false,
+        someUserInWhiteList: false,
+        configurationProperties: "",
+        configurationPropertiesObj: {}
+      }
+    },
+    mounted: function () {
+      setInterval(() => {
+        fetch('/demo')
+          .then(response => response.json())
+          .then(data => {
+            data.configurationProperties = jsyaml.dump(data.configurationPropertiesObj);
+            this.config = data;
+          })
+      }, 250)
+    },
+    methods: {}
+  })
+</script>
+</body>
+</html>

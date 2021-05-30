@@ -3,12 +3,6 @@ spring:
     include:
       - another-profile
 
-dynamic:
-  hello-world: Hello World !!!
-some:
-  feature:
-    beta-list: user1, user2, user3
-
 logging:
   level:
     top.code2life: debug

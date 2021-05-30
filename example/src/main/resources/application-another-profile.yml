@@ -1,23 +1,21 @@
+# Run application with specified config location:
+# eg: java -jar app.jar --spring.config.location=src/main/resources/
+# then, it just works !
+dynamic.hello-world: Hello @DynamicConfig Awesome !!!
+beta.enabled: false
+some:
+  feature:
+    beta-list: user1, user2, user3,
 dynamic:
   prop:
-    str: hello
+    str: Hello @ConfigurationProperties !
     map-val:
       k1: v1
+
       k2: v2
-    list-val:
+    listVal:
       - 1
       - 2
       - 3
-    nested-list:
-      - str: hello-inner
-        map-val:
-          k2-inner: v1-inner
-    nested_map:
-      m1:
-        str: hello-map
-        list-val: [5,6,7]
-
     nested:
-      str: hello-recursive-1
-      map-val:
-        x1: y1
+      str: Hello Recursive ! Awesome !!!
