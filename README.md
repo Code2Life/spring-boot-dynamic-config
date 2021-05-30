@@ -1,6 +1,6 @@
 <p align="center">
 <a href="https://github.com/code2life/spring-boot-dynamic-config"><img src="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml/badge.svg" /></a>
-<a href="https://codecov.io/gh/code2life/spring-boot-dynamic-config/"><img src="https://img.shields.io/codecov/c/github/code2life/spring-boot-dynamic-config/main.svg" alt="Coverage Status"></a>
+<a href="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml">coverage<img src=".github/badges/jacoco.svg" /></a>
 <a href="https://codebeat.co/projects/github-com-code2life-spring-boot-dynamic-config-main"><img alt="codebeat badge" src="https://codebeat.co/badges/ea7b2127-62f3-45f4-9f38-55f8203c0121" /></a>
 </p>
 
@@ -13,6 +13,7 @@ Hot-reload your SpringBoot configurations, with just a '@DynamicConfig' annotati
 - :heart: **Non-intrusive**, compatible with SpringBoot native ways (@Value, @ConfigurationProperties)
 - :zap: **Lightweight & Blazing Fast**, depend on nothing but SpringBoot core libs
 - :grinning: **Extremely easy to use**, only provide an annotation: @DynamicConfig, an event: ConfigurationChangedEvent
+- ☸ Perfect solution for running SpringBoot on Kubernetes, combine with K8S ConfigMap
 
 
 #### Compare with spring-cloud-starter-config
@@ -36,14 +37,14 @@ Maven
 <dependency>
     <groupId>top.code2life</groupId>
     <artifactId>spring-boot-dynamic-config</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.4</version>
 </dependency>
 ```
 
 Gradle
 
 ```groovy
-implementation 'top.code2life:spring-boot-dynamic-config:1.0.1'
+implementation 'top.code2life:spring-boot-dynamic-config:1.0.4'
 ```
 
 ### Step2. Add @DynamicConfig Annotation

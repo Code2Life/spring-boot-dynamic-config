@@ -5,7 +5,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import top.code2life.config.DynamicConfig;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Code2Life
@@ -18,5 +20,18 @@ public class TestConfigurationProperties {
 
     private String str;
     private Double doubleVal;
-    private Map<String, Object> mapVal;
+    private int intVal;
+    private Integer boxedIntVal;
+    private ConcurrentHashMap<String, Object> mapVal;
+    private List<String> listVal;
+    private List<TestConfigurationProperties> listObj;
+    private Nested nested;
+
+    @Data
+    public static class Nested {
+
+        private Map<String, String> mapVal;
+
+        private List<String> collectionVal;
+    }
 }

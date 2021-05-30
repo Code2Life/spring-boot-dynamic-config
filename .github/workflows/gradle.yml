@@ -26,8 +26,14 @@ jobs:
         OSSRHUSERNAME: ${{ secrets.OSSRHUSERNAME }}
         OSSRHPASSWORD: ${{ secrets.OSSRHPASSWORD }}
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    - uses: codecov/codecov-action@v1
+    - name: codecov report
+      uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: build/reports/jacoco/report.xml
         verbose: true
+    - name: jacoco-badge
+      uses: cicirello/jacoco-badge-generator@v2
+      with:
+        generate-branches-badge: true
+        jacoco-csv-file: build/reports/jacoco/test/jacocoTestReport.csv

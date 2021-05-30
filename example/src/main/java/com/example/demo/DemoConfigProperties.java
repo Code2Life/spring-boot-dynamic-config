@@ -7,6 +7,9 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import top.code2life.config.DynamicConfig;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author Code2Life
  **/
@@ -18,4 +21,13 @@ public class DemoConfigProperties {
 
     private String str;
 
+    private Map<String, String> mapVal;
+
+    private List<Integer> listVal;
+
+    private List<DemoConfigProperties> nestedList;
+
+    private Map<String, DemoConfigProperties> nestedMap;
+
+    private DemoConfigProperties nested;
 }

@@ -16,7 +16,7 @@ java {
 }
 
 group = 'top.code2life'
-version = '1.0.3'
+version = '1.0.4'
 sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
@@ -111,7 +111,7 @@ jacocoTestReport {
     reports {
         xml.enabled true
         xml.destination file("${buildDir}/reports/jacoco/report.xml")
-        csv.enabled false
+        csv.enabled true
         html.enabled true
         html.destination layout.buildDirectory.dir('jacocoHtml').get().asFile
     }

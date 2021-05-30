@@ -1,3 +1,23 @@
 dynamic:
   prop:
-    str: abcdeeffgggaa
+    str: hello
+    map-val:
+      k1: v1
+      k2: v2
+    list-val:
+      - 1
+      - 2
+      - 3
+    nested-list:
+      - str: hello-inner
+        map-val:
+          k2-inner: v1-inner
+    nested_map:
+      m1:
+        str: hello-map
+        list-val: [5,6,7]
+
+    nested:
+      str: hello-recursive-1
+      map-val:
+        x1: y1

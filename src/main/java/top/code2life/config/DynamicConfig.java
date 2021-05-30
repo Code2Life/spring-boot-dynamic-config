@@ -8,6 +8,8 @@ import java.lang.annotation.*;
  * The annotation @DynamicConfig could be added on Class or Field level,
  * to indicate that all @Value fields or single @Value field is dynamic loaded,
  * which means the actual value changes upon configuration file changes.
+ * The processor of this annotation is not thread-safe, when configuration changes,
+ * it will modify fields of the corresponding bean, during the period, dirty value could exist.
  *
  * Example:
  *

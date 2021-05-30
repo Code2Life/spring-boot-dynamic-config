@@ -13,6 +13,7 @@ import top.code2life.config.sample.TestComponent;
 import top.code2life.config.sample.TestConfigurationProperties;
 
 import java.io.*;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -112,6 +113,101 @@ public class DynamicConfigTests {
         writeYmlData(data, "application-dynamic.yml");
         Thread.sleep(1000);
         assertEquals(testVal, testComponent.getPlainValue());
+    }
+
+    @Test
+    public void testConfigPropRemoveBoxedValue() throws Exception {
+        assertEquals(3, testProperty.getBoxedIntVal());
+
+        Map<String, Object> data = readYmlData("application.yml");
+        Map<?, ?> myProp = (Map<?, ?>) data.get("myProp");
+        myProp.remove("boxedIntVal");
+        writeYmlData(data, "application.yml");
+        Thread.sleep(1000);
+
+        // because of Spring binder mechanism, value would not be removed as Property being removed
+        assertEquals(3, testProperty.getBoxedIntVal());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testConfigPropRemoveNestedCollectionValue() throws Exception {
+        assertEquals("a1", testProperty.getNested().getCollectionVal().get(0));
+        Map<String, Object> data = readYmlData("application.yml");
+        Map<?, ?> myProp = (Map<?, ?>) data.get("myProp");
+        List<Object> collectionVal = (List<Object>) ((Map<?, ?>) myProp.get("nested")).get("collection-val");
+        collectionVal.remove(0);
+        writeYmlData(data, "application.yml");
+        Thread.sleep(1000);
+        assertEquals("a2", testProperty.getNested().getCollectionVal().get(0));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testConfigPropAddOrRemoveNestedCollectionValue() throws Exception {
+        assertEquals("a2", testProperty.getNested().getCollectionVal().get(0));
+
+        Map<String, Object> data = readYmlData("application.yml");
+        Map<?, ?> myProp = (Map<?, ?>) data.get("myProp");
+        List<Object> collectionVal = (List<Object>) ((Map<?, ?>) myProp.get("nested")).get("collection-val");
+        collectionVal.remove(0);
+        collectionVal.add("a3");
+        writeYmlData(data, "application.yml");
+        Thread.sleep(1000);
+
+        assertEquals("a3", testProperty.getNested().getCollectionVal().get(0));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testConfigPropAddOrRemoveNestedMapValue() throws Exception {
+        assertEquals("v1", testProperty.getNested().getMapVal().get("m1"));
+
+        Map<String, Object> data = readYmlData("application.yml");
+        Map<?, ?> myProp = (Map<?, ?>) data.get("myProp");
+        Map<String, Object> mapVal = (Map<String, Object>) ((Map<?, ?>) myProp.get("nested")).get("mapVal");
+        mapVal.remove("m1");
+        writeYmlData(data, "application.yml");
+        Thread.sleep(1000);
+
+        assertNull(testProperty.getNested().getMapVal().get("m1"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testConfigPropRemoveAddMapValue() throws Exception {
+        assertEquals(2, testProperty.getIntVal());
+        assertEquals("v3", testProperty.getMapVal().get("k3"));
+
+        Map<String, Object> data = readYmlData("application.yml");
+        Map<String, Object> myProp = (Map<String, Object>) data.get("myProp");
+        myProp.remove("intVal");
+        ((Map<String, Object>) myProp.get("map-val")).remove("k3");
+        ((Map<String, Object>) myProp.get("map-val")).put("k4", "v4");
+        writeYmlData(data, "application.yml");
+        Thread.sleep(1000);
+
+        assertEquals(2, testProperty.getIntVal());
+        assertEquals("v4", testProperty.getMapVal().get("k4"));
+        assertNull(testProperty.getMapVal().get("k3"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testListValues() throws Exception {
+        assertEquals("l1", testProperty.getListVal().get(0));
+
+        Map<String, Object> data = readYmlData("application.yml");
+        Map<?, ?> myProp = (Map<?, ?>) data.get("myProp");
+        List<String> listVal = (List<String>) myProp.get("list-val");
+        listVal.remove(0);
+        listVal.add("l3");
+
+        writeYmlData(data, "application.yml");
+        Thread.sleep(1000);
+
+        assertEquals("l2", testProperty.getListVal().get(0));
+        assertEquals("l3", testProperty.getListVal().get(1));
     }
 
     @Test

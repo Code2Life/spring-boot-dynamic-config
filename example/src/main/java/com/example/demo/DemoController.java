@@ -30,8 +30,15 @@ public class DemoController {
     private final FeatureGate featureGate;
 
     @RequestMapping(value = "/demo", method = RequestMethod.GET)
-    public String getDemoConfigProps() {
-        return demoConfigProps.getStr();
+    public Object getDemoConfigProps() {
+        DemoConfigProperties resp = new DemoConfigProperties();
+        resp.setStr(demoConfigProps.getStr());
+        resp.setListVal(demoConfigProps.getListVal());
+        resp.setMapVal(demoConfigProps.getMapVal());
+        resp.setNestedList(demoConfigProps.getNestedList());
+        resp.setNestedMap(demoConfigProps.getNestedMap());
+        resp.setNested(demoConfigProps.getNested());
+        return resp;
     }
 
     @RequestMapping(value = "/demo2", method = RequestMethod.GET)
