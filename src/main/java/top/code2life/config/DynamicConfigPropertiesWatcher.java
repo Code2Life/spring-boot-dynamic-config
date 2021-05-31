@@ -197,7 +197,7 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
             }
             PropertySourceMeta propertySourceMeta = PROPERTY_SOURCE_META_MAP.get(absPathStr.replaceAll("\\\\", "/"));
             if (propertySourceMeta == null) {
-                log.warn("changed file at config location is not recognized: {}", absPathStr);
+                log.debug("changed file at config location is not recognized: {}", absPathStr);
                 return;
             }
             long currentModTs = Files.getLastModifiedTime(absPath).toMillis();
