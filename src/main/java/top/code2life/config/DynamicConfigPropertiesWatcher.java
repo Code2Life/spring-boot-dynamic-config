@@ -144,11 +144,11 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
         if (hasDotDataLinkFile) {
             log.info("ConfigMap/Secret mode detected, will polling symbolic link instead.");
             symbolicLinkModifiedTime = Files.getLastModifiedTime(symLinkPath, LinkOption.NOFOLLOW_LINKS).toMillis();
-            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, WATCH_THREAD)).scheduleWithFixedDelay(
+            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, POLLING_THREAD)).scheduleWithFixedDelay(
                     this::checkSymbolicLink, SYMBOL_LINK_POLLING_INTERVAL, SYMBOL_LINK_POLLING_INTERVAL, TimeUnit.MILLISECONDS);
         } else {
             // longer check for all config files, make up mechanism if WatchService doesn't work
-            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, WATCH_THREAD)).scheduleWithFixedDelay(
+            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, POLLING_THREAD)).scheduleWithFixedDelay(
                     this::reloadAllConfigFiles, NORMAL_FILE_POLLING_INTERVAL, NORMAL_FILE_POLLING_INTERVAL, TimeUnit.MILLISECONDS);
         }
     }
