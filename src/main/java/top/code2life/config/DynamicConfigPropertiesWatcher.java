@@ -40,6 +40,8 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
     private static final long NORMAL_FILE_POLLING_INTERVAL = 90000;
     private static final String FILE_COLON_SYMBOL = "file:";
     private static final String SYMBOL_LINK_DIR = "..data";
+    private static final String WATCH_THREAD = "config-watcher";
+    private static final String POLLING_THREAD = "config-watcher-polling";
     private static final String FILE_SOURCE_CONFIGURATION_PATTERN = "^.*Config\\sresource.*file.*$";
     private static final String FILE_SOURCE_CONFIGURATION_PATTERN_LEGACY = "^.+Config:\\s\\[file:.*$";
     private static final Map<String, PropertySourceMeta> PROPERTY_SOURCE_META_MAP = new HashMap<>(8);
@@ -83,7 +85,7 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
                 normalizeAndRecordPropSource(ps);
             }
         }
-        Executors.newSingleThreadExecutor(r -> new Thread(r, "config-watcher")).submit(this::startWatchDir);
+        Executors.newSingleThreadExecutor(r -> new Thread(r, WATCH_THREAD)).submit(this::startWatchDir);
     }
 
     /**
@@ -142,11 +144,11 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
         if (hasDotDataLinkFile) {
             log.info("ConfigMap/Secret mode detected, will polling symbolic link instead.");
             symbolicLinkModifiedTime = Files.getLastModifiedTime(symLinkPath, LinkOption.NOFOLLOW_LINKS).toMillis();
-            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "config-watcher-polling")).scheduleWithFixedDelay(
+            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, WATCH_THREAD)).scheduleWithFixedDelay(
                     this::checkSymbolicLink, SYMBOL_LINK_POLLING_INTERVAL, SYMBOL_LINK_POLLING_INTERVAL, TimeUnit.MILLISECONDS);
         } else {
             // longer check for all config files, make up mechanism if WatchService doesn't work
-            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "config-watcher-polling")).scheduleWithFixedDelay(
+            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, WATCH_THREAD)).scheduleWithFixedDelay(
                     this::reloadAllConfigFiles, NORMAL_FILE_POLLING_INTERVAL, NORMAL_FILE_POLLING_INTERVAL, TimeUnit.MILLISECONDS);
         }
     }
