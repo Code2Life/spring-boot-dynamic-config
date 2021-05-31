@@ -1,5 +1,6 @@
 package top.code2life.config;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,10 @@ import org.springframework.core.env.StandardEnvironment;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+
+import static top.code2life.config.DynamicConfigTests.CONFIG_LOCATION;
 
 /**
  * @author Code2Life
@@ -37,10 +42,22 @@ public class DynamicConfigPropertiesWatcherTest {
     }
 
     @Test
-    public void testFileWatch() {
+    public void testSymbolLinkWatch() throws Exception {
         DynamicConfigPropertiesWatcher watcher = new DynamicConfigPropertiesWatcher(environment, eventPublisher);
-        watcher.destroy();
-        // should not throw any exception
+        File file = new File(CONFIG_LOCATION, "..data");
+        try (PrintWriter writer = new PrintWriter(file)) {
+            writer.write("test-symbolic-link");
+            watcher.setConfigLocation(CONFIG_LOCATION);
+            watcher.watchConfigDirectory();
+        }
+        Thread.sleep(1000);
+        long mdt1 = Files.getLastModifiedTime(file.toPath(), LinkOption.NOFOLLOW_LINKS).toMillis();
+        try (PrintWriter writer = new PrintWriter(file)) {
+            writer.write("test-symbolic-link-2");
+        }
+        long mdt2 = Files.getLastModifiedTime(file.toPath(), LinkOption.NOFOLLOW_LINKS).toMillis();
+        Assertions.assertTrue(mdt1 != mdt2);
+        Thread.sleep(7000);
     }
 
     @Test
@@ -48,13 +65,20 @@ public class DynamicConfigPropertiesWatcherTest {
         DynamicConfigPropertiesWatcher watcher = new DynamicConfigPropertiesWatcher(environment, eventPublisher);
         // watch nothing since config.location not set
         watcher.watchConfigDirectory();
-        watcher.setConfigLocation(DynamicConfigTests.CONFIG_LOCATION);
+        watcher.setConfigLocation(CONFIG_LOCATION);
         watcher.watchConfigDirectory();
-        File file = new File(DynamicConfigTests.CONFIG_LOCATION, "unknown.txt");
+        File file = new File(CONFIG_LOCATION, "unknown.txt");
         try (PrintWriter writer = new PrintWriter(file)) {
             writer.write("test-data");
         }
         Thread.sleep(500);
+        // should not throw any exception
+    }
+
+    @Test
+    public void testFileWatch() {
+        DynamicConfigPropertiesWatcher watcher = new DynamicConfigPropertiesWatcher(environment, eventPublisher);
+        watcher.destroy();
         // should not throw any exception
     }
 }

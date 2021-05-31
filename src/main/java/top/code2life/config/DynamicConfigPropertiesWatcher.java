@@ -14,6 +14,7 @@ import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Arrays;
@@ -21,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 /**
  * Enhance PropertySource when spring.config.location is specified, it will start directory-watch,
@@ -33,7 +36,10 @@ import java.util.concurrent.Executors;
 @ConditionalOnProperty("spring.config.location")
 public class DynamicConfigPropertiesWatcher implements DisposableBean {
 
+    private static final long SYMBOL_LINK_POLLING_INTERVAL = 5000;
+    private static final long NORMAL_FILE_POLLING_INTERVAL = 90000;
     private static final String FILE_COLON_SYMBOL = "file:";
+    private static final String SYMBOL_LINK_DIR = "..data";
     private static final String FILE_SOURCE_CONFIGURATION_PATTERN = "^.*Config\\sresource.*file.*$";
     private static final String FILE_SOURCE_CONFIGURATION_PATTERN_LEGACY = "^.+Config:\\s\\[file:.*$";
     private static final Map<String, PropertySourceMeta> PROPERTY_SOURCE_META_MAP = new HashMap<>(8);
@@ -43,6 +49,7 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
     private final List<PropertySourceLoader> propertyLoaders;
 
     private WatchService watchService;
+    private long symbolicLinkModifiedTime = 0;
 
     @Value("${spring.config.location:}")
     private String configLocation;
@@ -108,13 +115,15 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
             log.info("start watching configuration directory: {}", configLocation);
             watchService = FileSystems.getDefault().newWatchService();
             Paths.get(configLocation).register(watchService, StandardWatchEventKinds.ENTRY_MODIFY, StandardWatchEventKinds.ENTRY_CREATE);
+            checkChangesWithPeriod();
             WatchKey key;
             while ((key = watchService.take()) != null) {
                 // avoid receiving two ENTRY_MODIFY events: file modified and timestamp updated
                 Thread.sleep(50);
                 for (WatchEvent<?> event : key.pollEvents()) {
                     Path path = (Path) event.context();
-                    reloadChangedFile(path);
+                    reloadChangedFile(path, false);
+
                 }
                 key.reset();
             }
@@ -126,7 +135,55 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
         }
     }
 
-    private void reloadChangedFile(Path path) {
+    @SuppressWarnings("AlibabaThreadPoolCreation")
+    private void checkChangesWithPeriod() throws IOException {
+        Path symLinkPath = Paths.get(configLocation, SYMBOL_LINK_DIR);
+        boolean hasDotDataLinkFile = new File(configLocation, SYMBOL_LINK_DIR).exists();
+        if (hasDotDataLinkFile) {
+            log.info("ConfigMap/Secret mode detected, will polling symbolic link instead.");
+            symbolicLinkModifiedTime = Files.getLastModifiedTime(symLinkPath, LinkOption.NOFOLLOW_LINKS).toMillis();
+            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "config-watcher-polling")).scheduleWithFixedDelay(
+                    this::checkSymbolicLink, SYMBOL_LINK_POLLING_INTERVAL, SYMBOL_LINK_POLLING_INTERVAL, TimeUnit.MILLISECONDS);
+        } else {
+            // longer check for all config files, make up mechanism if WatchService doesn't work
+            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "config-watcher-polling")).scheduleWithFixedDelay(
+                    this::reloadAllConfigFiles, NORMAL_FILE_POLLING_INTERVAL, NORMAL_FILE_POLLING_INTERVAL, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private void checkSymbolicLink() {
+        try {
+            Path symLinkPath = Paths.get(configLocation, SYMBOL_LINK_DIR);
+            long tmp = Files.getLastModifiedTime(symLinkPath, LinkOption.NOFOLLOW_LINKS).toMillis();
+            if (tmp != symbolicLinkModifiedTime) {
+                reloadAllConfigFiles(true);
+                symbolicLinkModifiedTime = tmp;
+            }
+        } catch (IOException ex) {
+            log.warn("could not check symbolic link of config dir: {}", ex.getMessage());
+        }
+    }
+
+    private void reloadAllConfigFiles() {
+        reloadAllConfigFiles(false);
+    }
+
+    private void reloadAllConfigFiles(boolean forceReload) {
+        try (Stream<Path> paths = Files.walk(Paths.get(configLocation))) {
+            paths.forEach((path) -> {
+                if (!Files.isDirectory(path)) {
+                    reloadChangedFile(path, forceReload);
+                }
+            });
+        } catch (IOException e) {
+            log.warn("can not walk through config directory: {}", e.getMessage());
+        }
+    }
+
+    private void reloadChangedFile(Path path, boolean forceReload) {
+        if (SYMBOL_LINK_DIR.equals(path.toString())) {
+            return;
+        }
         Path absPath = null;
         try {
             absPath = Paths.get(configLocation, path.toString());
@@ -143,7 +200,7 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
             }
             long currentModTs = Files.getLastModifiedTime(absPath).toMillis();
             long mdt = propertySourceMeta.getLastModifyTime();
-            if (mdt != currentModTs) {
+            if (forceReload || mdt != currentModTs) {
                 doReloadConfigFile(propertySourceMeta, absPathStr, currentModTs);
             }
         } catch (Exception ex) {
