@@ -67,24 +67,10 @@ public class ConfigurationChangedEventHandler {
                 processConfigPropsClass(toRefreshProps, key);
                 processValueField(key, entry.getValue());
             }
-            for (Map.Entry<String, ValueBeanFieldBinder> entry : toRefreshProps.entrySet()) {
-                String beanName = entry.getKey();
-                ValueBeanFieldBinder binder = entry.getValue();
-                Object bean = binder.getBeanRef().get();
-                if (bean != null) {
-                    processor.postProcessBeforeInitialization(bean, beanName);
-                    // AggregateBinder - MapBinder will merge properties while binding
-                    // need to check deleted keys and remove from map fields
-                    removeMissingPropsMapFields(diff, bean, binder.getExpr());
-                    log.debug("changes detected, re-bind ConfigurationProperties bean: {}", beanName);
-                }
-            }
+            rebindRelatedConfigurationPropsBeans(diff, toRefreshProps);
             log.info("config changes of {} have been processed", event.getSource());
         } catch (Exception ex) {
             log.warn("config changes of {} can not be processed, error:", event.getSource(), ex);
-            if (log.isDebugEnabled()) {
-                log.error("error detail is:", ex);
-            }
         }
     }
 
@@ -163,6 +149,21 @@ public class ConfigurationChangedEventHandler {
         }
         if (log.isDebugEnabled()) {
             log.debug("dynamic config found, set field: '{}' of class: '{}' with new value", field.getName(), bean.getClass().getSimpleName());
+        }
+    }
+
+    private void rebindRelatedConfigurationPropsBeans(Map<Object, Object> diff, Map<String, ValueBeanFieldBinder> toRefreshProps) throws IllegalAccessException {
+        for (Map.Entry<String, ValueBeanFieldBinder> entry : toRefreshProps.entrySet()) {
+            String beanName = entry.getKey();
+            ValueBeanFieldBinder binder = entry.getValue();
+            Object bean = binder.getBeanRef().get();
+            if (bean != null) {
+                processor.postProcessBeforeInitialization(bean, beanName);
+                // AggregateBinder - MapBinder will merge properties while binding
+                // need to check deleted keys and remove from map fields
+                removeMissingPropsMapFields(diff, bean, binder.getExpr());
+                log.debug("changes detected, re-bind ConfigurationProperties bean: {}", beanName);
+            }
         }
     }
 
