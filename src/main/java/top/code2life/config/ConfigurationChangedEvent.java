@@ -25,7 +25,9 @@ public class ConfigurationChangedEvent extends ApplicationEvent {
      */
     private PropertySource<?> current;
 
-    ConfigurationChangedEvent(String path) {
+    ConfigurationChangedEvent(String path, PropertySource<?> previous, PropertySource<?> current) {
         super(path);
+        this.previous = previous;
+        this.current = current;
     }
 }

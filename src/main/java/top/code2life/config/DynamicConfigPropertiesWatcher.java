@@ -22,8 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+
+import static top.code2life.config.ConfigurationUtils.normalizePath;
+import static top.code2life.config.ConfigurationUtils.trimRelativePathAndReplaceBackSlash;
 
 /**
  * Enhance PropertySource when spring.config.location is specified, it will start directory-watch,
@@ -108,7 +112,7 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
         if (pathStr.contains(FILE_COLON_SYMBOL)) {
             pathStr = pathStr.replace(FILE_COLON_SYMBOL, "");
         }
-        PROPERTY_SOURCE_META_MAP.put(pathStr.replaceAll("\\\\", "/"), new PropertySourceMeta(ps, Paths.get(pathStr), 0L));
+        PROPERTY_SOURCE_META_MAP.put(trimRelativePathAndReplaceBackSlash(pathStr), new PropertySourceMeta(ps, Paths.get(pathStr), 0L));
         log.debug("configuration file found: {}", pathStr);
     }
 
@@ -124,7 +128,7 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
                 Thread.sleep(50);
                 for (WatchEvent<?> event : key.pollEvents()) {
                     Path path = (Path) event.context();
-                    reloadChangedFile(path, false);
+                    reloadChangedFile(path.toString(), false);
 
                 }
                 key.reset();
@@ -137,20 +141,23 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
         }
     }
 
-    @SuppressWarnings("AlibabaThreadPoolCreation")
     private void checkChangesWithPeriod() throws IOException {
         Path symLinkPath = Paths.get(configLocation, SYMBOL_LINK_DIR);
         boolean hasDotDataLinkFile = new File(configLocation, SYMBOL_LINK_DIR).exists();
         if (hasDotDataLinkFile) {
             log.info("ConfigMap/Secret mode detected, will polling symbolic link instead.");
             symbolicLinkModifiedTime = Files.getLastModifiedTime(symLinkPath, LinkOption.NOFOLLOW_LINKS).toMillis();
-            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, POLLING_THREAD)).scheduleWithFixedDelay(
-                    this::checkSymbolicLink, SYMBOL_LINK_POLLING_INTERVAL, SYMBOL_LINK_POLLING_INTERVAL, TimeUnit.MILLISECONDS);
+            startFixedRateCheckThread(this::checkSymbolicLink, SYMBOL_LINK_POLLING_INTERVAL);
         } else {
             // longer check for all config files, make up mechanism if WatchService doesn't work
-            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, POLLING_THREAD)).scheduleWithFixedDelay(
-                    this::reloadAllConfigFiles, NORMAL_FILE_POLLING_INTERVAL, NORMAL_FILE_POLLING_INTERVAL, TimeUnit.MILLISECONDS);
+            startFixedRateCheckThread(this::reloadAllConfigFiles, NORMAL_FILE_POLLING_INTERVAL);
         }
+    }
+
+    @SuppressWarnings("AlibabaThreadPoolCreation")
+    private ScheduledFuture<?> startFixedRateCheckThread(Runnable cmd, long interval) {
+        return Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, POLLING_THREAD))
+                .scheduleWithFixedDelay(cmd, interval, interval, TimeUnit.MILLISECONDS);
     }
 
     private void checkSymbolicLink() {
@@ -172,69 +179,61 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
 
     private void reloadAllConfigFiles(boolean forceReload) {
         try (Stream<Path> paths = Files.walk(Paths.get(configLocation))) {
-            paths.forEach((path) -> {
-                if (!Files.isDirectory(path)) {
-                    reloadChangedFile(path, forceReload);
-                }
+            paths.filter(path -> !Files.isDirectory(path)).forEach((path) -> {
+                reloadChangedFile(path.toString(), forceReload);
             });
         } catch (IOException e) {
             log.warn("can not walk through config directory: {}", e.getMessage());
         }
     }
 
-    private void reloadChangedFile(Path path, boolean forceReload) {
-        if (SYMBOL_LINK_DIR.equals(path.toString())) {
+    private void reloadChangedFile(String rawPath, boolean forceReload) {
+        String absPathStr = normalizePath(rawPath, configLocation);
+        Path path = Paths.get(absPathStr);
+        if (SYMBOL_LINK_DIR.equals(path.getFileName().toString())) {
             return;
         }
-        Path absPath = null;
         try {
-            absPath = Paths.get(configLocation, path.toString());
-            String absPathStr = absPath.toString();
-            // remove ./ or .\ at the beginning of the path
-            boolean beginWithRelative = absPathStr.length() > 2 && (absPathStr.startsWith("./") || absPathStr.startsWith(".\\"));
-            if (beginWithRelative) {
-                absPathStr = absPathStr.substring(2);
-            }
-            PropertySourceMeta propertySourceMeta = PROPERTY_SOURCE_META_MAP.get(absPathStr.replaceAll("\\\\", "/"));
+            PropertySourceMeta propertySourceMeta = PROPERTY_SOURCE_META_MAP.get(absPathStr);
             if (propertySourceMeta == null) {
                 log.debug("changed file at config location is not recognized: {}", absPathStr);
                 return;
             }
-            long currentModTs = Files.getLastModifiedTime(absPath).toMillis();
+            long currentModTs = Files.getLastModifiedTime(path).toMillis();
             long mdt = propertySourceMeta.getLastModifyTime();
             if (forceReload || mdt != currentModTs) {
                 doReloadConfigFile(propertySourceMeta, absPathStr, currentModTs);
             }
         } catch (Exception ex) {
-            log.error("reload configuration file {} failed: ", absPath, ex);
+            log.error("reload configuration file {} failed: ", absPathStr, ex);
         }
     }
 
     private void doReloadConfigFile(PropertySourceMeta propertySourceMeta, String path, long modifyTime) throws IOException {
         log.info("config file has been changed: {}", path);
-        String extension = "";
-        int i = path.lastIndexOf('.');
-        if (i > 0) {
-            extension = path.substring(i + 1);
-        }
-        String propertySourceName = propertySourceMeta.getPropertySource().getName();
-        ConfigurationChangedEvent event = new ConfigurationChangedEvent(path);
-        FileSystemResource resource = new FileSystemResource(path);
+        String extension = ConfigurationUtils.getFileExtension(path);
         for (PropertySourceLoader loader : propertyLoaders) {
             if (Arrays.asList(loader.getFileExtensions()).contains(extension)) {
                 // use this loader to load config resource
-                List<PropertySource<?>> newPropsList = loader.load(propertySourceName, resource);
-                if (newPropsList.size() >= 1) {
-                    PropertySource<?> newProps = newPropsList.get(0);
-                    event.setPrevious(env.getPropertySources().get(propertySourceName));
-                    event.setCurrent(newProps);
-                    env.getPropertySources().replace(propertySourceName, newProps);
-                    propertySourceMeta.setLastModifyTime(modifyTime);
-                    eventPublisher.publishEvent(event);
-                }
+                loadPropertiesAndPublishEvent(propertySourceMeta, loader, path, modifyTime);
                 break;
             }
         }
+    }
+
+    private void loadPropertiesAndPublishEvent(PropertySourceMeta propertySourceMeta, PropertySourceLoader loader, String path, long modifyTime) throws IOException {
+        FileSystemResource resource = new FileSystemResource(path);
+        String propertySourceName = propertySourceMeta.getPropertySource().getName();
+        List<PropertySource<?>> newPropsList = loader.load(propertySourceName, resource);
+        if (newPropsList.size() < 1) {
+            log.warn("properties not loaded after config changed: {}", path);
+            return;
+        }
+        PropertySource<?> newProps = newPropsList.get(0);
+        ConfigurationChangedEvent event = new ConfigurationChangedEvent(path, env.getPropertySources().get(propertySourceName), newProps);
+        env.getPropertySources().replace(propertySourceName, newProps);
+        propertySourceMeta.setLastModifyTime(modifyTime);
+        eventPublisher.publishEvent(event);
     }
 
     private void closeConfigDirectoryWatch() {

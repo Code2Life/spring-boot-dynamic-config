@@ -5,6 +5,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -64,4 +65,35 @@ public class ConfigurationUtils {
         return clazz;
     }
 
+    static String normalizePath(String path, String expectedBaseDir) {
+        path = trimRelativePathAndReplaceBackSlash(path);
+        expectedBaseDir = trimRelativePathAndReplaceBackSlash(expectedBaseDir);
+        if (!path.startsWith(expectedBaseDir)) {
+            String combined = Paths.get(expectedBaseDir, path).toString();
+            return trimRelativePathAndReplaceBackSlash(combined);
+        }
+        return path;
+    }
+
+    static String trimRelativePathAndReplaceBackSlash(String str) {
+        if (!StringUtils.hasText(str)) {
+            throw new IllegalArgumentException("wrong parameters when processing path");
+        }
+        str = str.toLowerCase();
+        boolean beginWithRelative = str.length() > 2 && (str.startsWith("./") || str.startsWith(".\\"));
+        if (beginWithRelative) {
+            return str.substring(2).replaceAll("\\\\", "/");
+        }
+        return str;
+    }
+
+
+    static String getFileExtension(String path) {
+        String extension = "";
+        int i = path.lastIndexOf('.');
+        if (i > 0) {
+            extension = path.substring(i + 1);
+        }
+        return extension;
+    }
 }
