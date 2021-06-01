@@ -15,7 +15,7 @@ Hot-reload your SpringBoot configurations, with just a '@DynamicConfig' annotati
 - :heart: **Non-intrusive**, compatible with SpringBoot native ways (@Value, @ConfigurationProperties)
 - :zap: **Lightweight & Blazing Fast**, depend on nothing but SpringBoot core libs
 - :grinning: **Extremely easy to use**, only provide an annotation: @DynamicConfig, an event: ConfigurationChangedEvent
-- ☸ Perfect solution for host-reloading configurations of SpringBoot application on Kubernetes, with K8S ConfigMap
+- ☸ Perfect solution for hot-reloading configuration of SpringBoot application on Kubernetes, with K8S ConfigMap
 
 #### Compare with spring-cloud-starter-config
 
