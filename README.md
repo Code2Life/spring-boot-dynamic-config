@@ -3,7 +3,7 @@
 <p align="left">
 <br>
 <a href="https://github.com/code2life/spring-boot-dynamic-config"><img src="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml/badge.svg" /></a>
-<a href="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml"><img src=".github/badges/jacoco.svg" /></a>
+<a href="https://github.com/code2life/spring-boot-dynamic-config/actions/workflows/gradle.yml"><img src="https://filecdn.code2life.top/jacoco-sp.svg" /></a>
 <a href="https://codebeat.co/projects/github-com-code2life-spring-boot-dynamic-config-main"><img alt="codebeat badge" src="https://codebeat.co/badges/ea7b2127-62f3-45f4-9f38-55f8203c0121" /></a>
 <br>
 </p>
@@ -29,7 +29,7 @@ Hot-reload your SpringBoot configurations, with just a '@DynamicConfig' annotati
 
 ## Demo
 
-<img src="example/demo.gif" alt="Demo" />
+<img src="https://filecdn.code2life.top/springboot-config-demo.gif" alt="Demo" />
 
 ## Getting Started
 
