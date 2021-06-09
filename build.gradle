@@ -16,7 +16,7 @@ java {
 }
 
 group = 'top.code2life'
-version = '1.0.6'
+version = '1.0.7'
 sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {

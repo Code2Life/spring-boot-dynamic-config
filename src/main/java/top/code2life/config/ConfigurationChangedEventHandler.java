@@ -11,7 +11,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor;
 import org.springframework.boot.origin.OriginTrackedValue;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
@@ -38,8 +41,11 @@ public class ConfigurationChangedEventHandler {
     private final BeanExpressionContext exprContext;
     private final ConfigurationPropertiesBindingPostProcessor processor;
     private final ConfigurableListableBeanFactory beanFactory;
+    private final ApplicationEventPublisher eventPublisher;
 
-    ConfigurationChangedEventHandler(ApplicationContext applicationContext, BeanFactory beanFactory) {
+    ConfigurationChangedEventHandler(ApplicationContext applicationContext, BeanFactory beanFactory,
+                                     ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
         if (!(beanFactory instanceof ConfigurableListableBeanFactory)) {
             throw new IllegalArgumentException(
                     "DynamicConfig requires a ConfigurableListableBeanFactory");
@@ -56,9 +62,10 @@ public class ConfigurationChangedEventHandler {
      *
      * @param event ConfigurationChangedEvent indicates a configuration file changed event
      */
-    @EventListener
     @SuppressWarnings("unchecked")
-    public synchronized void handleEvent(ConfigurationChangedEvent event) {
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    @EventListener(ConfigurationFileChangedEvent.class)
+    public synchronized void handleEvent(ConfigurationFileChangedEvent event) {
         try {
             Map<Object, Object> diff = getPropertyDiff((Map<Object, OriginTrackedValue>) event.getPrevious().getSource(), (Map<Object, OriginTrackedValue>) event.getCurrent().getSource());
             Map<String, ValueBeanFieldBinder> toRefreshProps = new HashMap<>(4);
@@ -69,6 +76,7 @@ public class ConfigurationChangedEventHandler {
             }
             rebindRelatedConfigurationPropsBeans(diff, toRefreshProps);
             log.info("config changes of {} have been processed", event.getSource());
+            eventPublisher.publishEvent(new ConfigurationChangedEvent(diff));
         } catch (Exception ex) {
             log.warn("config changes of {} can not be processed, error:", event.getSource(), ex);
         }

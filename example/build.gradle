@@ -27,5 +27,5 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok:1.18.20'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
-	implementation 'top.code2life:spring-boot-dynamic-config:1.0.6'
+	implementation 'top.code2life:spring-boot-dynamic-config:1.0.7'
 }

@@ -3,7 +3,8 @@ package top.code2life.config;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.core.env.PropertySource;
+
+import java.util.Map;
 
 /**
  * Application event that represents configuration file has been changed
@@ -16,18 +17,12 @@ import org.springframework.core.env.PropertySource;
 public class ConfigurationChangedEvent extends ApplicationEvent {
 
     /**
-     * previous property source of changed config file
+     * The diff properties, keys are normalized, values are newest values
      */
-    private PropertySource<?> previous;
+    private Map<Object, Object> diff;
 
-    /**
-     * current property source of changed config file
-     */
-    private PropertySource<?> current;
-
-    ConfigurationChangedEvent(String path, PropertySource<?> previous, PropertySource<?> current) {
-        super(path);
-        this.previous = previous;
-        this.current = current;
+    ConfigurationChangedEvent(Map<Object, Object> diff) {
+        super(diff.keySet());
+        this.diff = diff;
     }
 }

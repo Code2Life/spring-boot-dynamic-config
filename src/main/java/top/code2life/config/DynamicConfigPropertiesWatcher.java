@@ -34,7 +34,7 @@ import static top.code2life.config.ConfigurationUtils.trimRelativePathAndReplace
  * listening any changes on configuration files, then publish ConfigurationChangedEvent.
  *
  * @author Code2Life
- * @see ConfigurationChangedEvent
+ * @see ConfigurationFileChangedEvent
  */
 @Slf4j
 @ConditionalOnProperty("spring.config.location")
@@ -230,7 +230,7 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
             return;
         }
         PropertySource<?> newProps = newPropsList.get(0);
-        ConfigurationChangedEvent event = new ConfigurationChangedEvent(path, env.getPropertySources().get(propertySourceName), newProps);
+        ConfigurationFileChangedEvent event = new ConfigurationFileChangedEvent(path, env.getPropertySources().get(propertySourceName), newProps);
         env.getPropertySources().replace(propertySourceName, newProps);
         propertySourceMeta.setLastModifyTime(modifyTime);
         eventPublisher.publishEvent(event);
