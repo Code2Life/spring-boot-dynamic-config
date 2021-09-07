@@ -84,7 +84,7 @@ public class ConfigurationUtils {
         if (beginWithRelative) {
             return str.substring(2).replaceAll("\\\\", "/");
         }
-        return str;
+        return str.replaceAll("\\\\", "/");
     }
 
 

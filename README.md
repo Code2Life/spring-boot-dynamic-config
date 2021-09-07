@@ -42,14 +42,14 @@ Maven
 <dependency>
     <groupId>top.code2life</groupId>
    <artifactId>spring-boot-dynamic-config</artifactId>
-   <version>1.0.7</version>
+   <version>1.0.8</version>
 </dependency>
 ```
 
 Gradle
 
 ```groovy
-implementation 'top.code2life:spring-boot-dynamic-config:1.0.7'
+implementation 'top.code2life:spring-boot-dynamic-config:1.0.8'
 ```
 
 ### Step2. Add @DynamicConfig Annotation

@@ -5,10 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,28 +30,10 @@ public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
 
     static final Map<String, List<ValueBeanFieldBinder>> DYNAMIC_FIELD_BINDER_MAP = new ConcurrentHashMap<>(16);
     static final Map<String, ValueBeanFieldBinder> DYNAMIC_CONFIG_PROPS_BINDER_MAP = new ConcurrentHashMap<>(8);
-    static final Map<String, Object> DYNAMIC_BEAN_MAP = new ConcurrentHashMap<>(16);
 
-    private final ApplicationContext applicationContext;
-
-    DynamicConfigBeanPostProcessor(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-        DYNAMIC_BEAN_MAP.clear();
+    DynamicConfigBeanPostProcessor() {
         DYNAMIC_FIELD_BINDER_MAP.clear();
         DYNAMIC_CONFIG_PROPS_BINDER_MAP.clear();
-    }
-
-    /**
-     * Check all beans with DynamicConfig annotation after this PostProcessor being initialized,
-     * this double check mechanism is for a special case: some beans created by other approaches directly, not calling BeanPostProcessor
-     */
-    @PostConstruct
-    public void handleDynamicConfigurationBeans() {
-        Map<String, Object> dynamicBeans = applicationContext.getBeansWithAnnotation(DynamicConfig.class);
-        for (Map.Entry<String, Object> entry : dynamicBeans.entrySet()) {
-            String beanName = entry.getKey();
-            handleDynamicBean(entry.getValue(), beanName);
-        }
     }
 
     /**
@@ -70,11 +50,6 @@ public class DynamicConfigBeanPostProcessor implements BeanPostProcessor {
     }
 
     private void handleDynamicBean(Object bean, String beanName) {
-        // avoid duplicate processing after post processor
-        if (DYNAMIC_BEAN_MAP.containsKey(beanName)) {
-            return;
-        }
-        DYNAMIC_BEAN_MAP.putIfAbsent(beanName, bean);
         Class<?> clazz = ConfigurationUtils.getTargetClassOfBean(bean);
         Field[] fields = clazz.getDeclaredFields();
         // handle @ConfigurationProperties beans

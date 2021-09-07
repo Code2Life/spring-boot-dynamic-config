@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.4.5'
+        springBootVersion = '2.5.4'
     }
 }
 plugins {
@@ -16,7 +16,7 @@ java {
 }
 
 group = 'top.code2life'
-version = '1.0.7'
+version = '1.0.8'
 sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
