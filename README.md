@@ -158,7 +158,8 @@ beans **immediately**.
 
 Any SpringBoot/SpringCloud application within following SpringBoot version can use this lib.
 
-- √ SpringBoot 2.5.x and Above
+- √ SpringBoot 2.6.x, 2.7.x, 3.0.0 and Above
+- √ SpringBoot 2.5.x 
 - √ SpringBoot 2.4.x
 - √ SpringBoot 2.3.x
 - √ SpringBoot 2.2.x
