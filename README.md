@@ -139,7 +139,7 @@ beans **immediately**.
 
 - Configuration as Code, Everything as Code
 - Configurations should be maintained in Git, rather than any GUI system.
-- Configurations should be applied to dev/production environments by Continuous Integration system.
+- Configurations should be applied to dev/production environments by Continuous Delivery system.
 - Git-Based DevOps workflow is the modern way of operating services, at scale.
 
 ## Implementation
