@@ -38,6 +38,14 @@
         <el-form-item label="@ConfigurationProperties">
           <el-input type="textarea" :rows="13" v-model="config.configurationProperties"/>
         </el-form-item>
+
+        <el-form-item label="ConfigTree @ConfigurationProperties">
+          <el-input :rows="13" type="textarea" v-model="config.configurationPropertiesInTree"/>
+        </el-form-item>
+
+        <el-form-item label="@Value with placeholder">
+          <el-input read-only v-model="config.valuePlaceHolderInTree"/>
+        </el-form-item>
       </el-form>
     </el-col>
   </el-row>
@@ -48,11 +56,14 @@
     data: {
       config: {
         valuePlaceHolder: "",
+        valuePlaceHolderInTree: "",
         valueSpringEL: "",
         betaFeatureEnabled: false,
         someUserInWhiteList: false,
         configurationProperties: "",
-        configurationPropertiesObj: {}
+        configurationPropertiesInTree: "",
+        configurationPropertiesObj: {},
+        configurationPropertiesTreeObj: {}
       }
     },
     mounted: function () {
@@ -61,6 +72,7 @@
           .then(response => response.json())
           .then(data => {
             data.configurationProperties = jsyaml.dump(data.configurationPropertiesObj);
+            data.configurationPropertiesInTree = jsyaml.dump(data.configurationPropertiesTreeObj);
             this.config = data;
           })
       }, 250)

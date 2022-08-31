@@ -18,6 +18,9 @@ public class DemoDynamicValue {
     @Value("${dynamic.hello-world}")
     private String dynamicHello;
 
+    @Value("${module-b.xyz.hello-import}")
+    private String dynamicHelloImport;
+
     @Value("#{@featureGate.convert('${some.feature.beta-list}')}")
     private Set<String> betaUserList;
 }

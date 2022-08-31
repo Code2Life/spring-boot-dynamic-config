@@ -1,7 +1,6 @@
 buildscript {
 	ext {
-		// springBootVersion = '2.7.3'
-		springBootVersion = '2.3.0.RELEASE'
+		springBootVersion = '2.7.3'
 	}
 }
 plugins {
@@ -14,7 +13,7 @@ version = '1.0.0'
 sourceCompatibility = JavaVersion.VERSION_1_8
 
 bootJar {
-	mainClassName "com.example.demo.DemoApplication"
+	mainClass.set("com.example.demo.DemoApplication")
 }
 
 repositories {
@@ -28,5 +27,10 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok:1.18.20'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
-	implementation 'top.code2life:spring-boot-dynamic-config:1.0.8'
+	implementation 'top.code2life:spring-boot-dynamic-config:1.0.9'
 }
+
+// type: configMap
+// files:
+//  - module-a/*.yaml
+//

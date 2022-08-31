@@ -1,0 +1,11 @@
+prop:
+  str: Hello @ConfigurationProperties in Config Tree
+  map-val:
+    k1: v3
+    k2: v2
+  listVal:
+    - 1
+    - 2
+    - 3
+  nested:
+    str: Hello Recursive !
