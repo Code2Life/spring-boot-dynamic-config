@@ -1,0 +1,7 @@
+dynamicFeatureConf: "a,b,c"
+
+dynamic:
+  transform-a: 100
+  transform-b: 25
+
+dynamicTestPlain: dynamic-test

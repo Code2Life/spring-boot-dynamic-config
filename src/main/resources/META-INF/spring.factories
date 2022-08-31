@@ -1,2 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   top.code2life.config.DynamicConfigAutoConfiguration
+org.springframework.boot.env.EnvironmentPostProcessor=\
+  top.code2life.config.ConfigTreeEnvironmentPostProcessor

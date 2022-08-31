@@ -32,4 +32,9 @@ public class FeatureGateTest {
         assertTrue(featureGate.isFeatureEnabled(configVal, "a"));
         assertTrue(featureGate.isFeatureEnabled(configVal, "e"));
     }
+
+    @Test
+    public void testToKebabCase() {
+        assertEquals("abc-ef-g-x-a-bbcc-ef-z.ac.%", ConfigurationUtils.normalizePropKey("Abc_EfG-xA-bbcc_EF-z.ac.%"));
+    }
 }

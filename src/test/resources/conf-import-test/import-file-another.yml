@@ -1,0 +1,22 @@
+myProp:
+  str: dynamic
+  double-val: 1
+  intVal: 2
+  boxedIntVal: 3
+  map-val:
+    k1: v1
+    k2: v2
+    k3: v3
+  list-val:
+    - l1
+    - l2
+  list-obj:
+    - str: recursive
+      double-val: 3.14
+  nested:
+    mapVal:
+      m1: v1
+      m2: v2
+    collection-val:
+      - a1
+      - a2

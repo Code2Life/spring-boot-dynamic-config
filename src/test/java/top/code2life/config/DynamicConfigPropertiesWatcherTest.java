@@ -14,6 +14,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 
+import static top.code2life.config.DynamicConfigPropertiesWatcher.WATCHABLE_TARGETS;
 import static top.code2life.config.DynamicConfigTests.CONFIG_LOCATION;
 
 /**
@@ -43,11 +44,12 @@ public class DynamicConfigPropertiesWatcherTest {
 
     @Test
     public void testSymbolLinkWatch() throws Exception {
+        FileSystemWatchTarget watchTarget = new FileSystemWatchTarget(FileSystemWatchTarget.WatchTargetType.CONFIG_LOCATION, CONFIG_LOCATION);
+        WATCHABLE_TARGETS.put(watchTarget.getNormalizedDir(), watchTarget);
         DynamicConfigPropertiesWatcher watcher = new DynamicConfigPropertiesWatcher(environment, eventPublisher);
         File file = new File(CONFIG_LOCATION, "..data");
         try (PrintWriter writer = new PrintWriter(file)) {
             writer.write("test-symbolic-link");
-            watcher.setConfigLocation(CONFIG_LOCATION);
             watcher.watchConfigDirectory();
         }
         Thread.sleep(1000);
@@ -62,10 +64,10 @@ public class DynamicConfigPropertiesWatcherTest {
 
     @Test
     public void testWatchUnRecognizedFile() throws Exception {
+        FileSystemWatchTarget watchTarget = new FileSystemWatchTarget(FileSystemWatchTarget.WatchTargetType.CONFIG_LOCATION, CONFIG_LOCATION);
+        WATCHABLE_TARGETS.put(watchTarget.getNormalizedDir(), watchTarget);
         DynamicConfigPropertiesWatcher watcher = new DynamicConfigPropertiesWatcher(environment, eventPublisher);
         // watch nothing since config.location not set
-        watcher.watchConfigDirectory();
-        watcher.setConfigLocation(CONFIG_LOCATION);
         watcher.watchConfigDirectory();
         File file = new File(CONFIG_LOCATION, "unknown.txt");
         try (PrintWriter writer = new PrintWriter(file)) {

@@ -1,0 +1,3 @@
+logging:
+  level:
+    top.code2life: debug

@@ -1,4 +1,4 @@
-package top.code2life.config.sample;
+package top.code2life.config.sample.configtree;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,15 +13,15 @@ import java.util.Set;
 @Data
 @DynamicConfig
 @Component
-public class TestComponent {
+public class TestConfigTreeComponent {
 
-    @Value("${dynamic-test-plain:default}")
+    @Value("${module-a.xyz.dynamic-test-plain:default}")
     private String plainValue;
 
-    @Value("#{@featureGate.convert('${dynamic-feature-conf:}')}")
+    @Value("#{@featureGate.convert('${module-a.xyz.dynamic-feature-conf:}')}")
     private Set<String> someBetaFeatureConfig;
 
-    @Value("#{T(top.code2life.config.sample.TestComponent).transform(${dynamic.transform-a:20}, ${dynamic.transform-b:10})} ")
+    @Value("#{T(top.code2life.config.sample.configtree.TestConfigTreeComponent).transform(${module-a.xyz.dynamic.transform-a:20}, ${module-a.xyz.dynamic.transform-b:10})} ")
     private double transformBySpEL;
 
 

@@ -1,9 +1,9 @@
 package top.code2life.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.TestPropertySource;
 import top.code2life.config.sample.TestApplication;
@@ -17,17 +17,21 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static top.code2life.config.TestUtils.*;
 
+/**
+ * Test new features in Spring Boot 2.4: spring.config.import feature
+ */
+@Slf4j
 @TestPropertySource(
-        properties = {"spring.config.location=" + DynamicConfigTests.CONFIG_LOCATION}
+        properties = {
+                "spring.config.location=" + DynamicConfigTests.NO_CONFIG_LOCATION,
+                "spring.config.import=" + ImportConfigFileTests.IMPORT_LOCATION_1 + "," + ImportConfigFileTests.IMPORT_LOCATION_2
+        }
 )
 @SpringBootTest(classes = {TestApplication.class})
-public class DynamicConfigTests {
+public class ImportConfigFileTests {
 
-    public static final String CONFIG_LOCATION = "./build/resources/test/";
-    public static final String NO_CONFIG_LOCATION = "./build/resources/test/no-config-location/";
-
-    @Autowired
-    private ApplicationContext context;
+    public static final String IMPORT_LOCATION_1 = "./build/resources/test/conf-import-test/import-file.yaml";
+    public static final String IMPORT_LOCATION_2 = "./build/resources/test/conf-import-test/import-file-another.yml";
 
     @Autowired
     private TestConfigurationProperties testProperty;
@@ -48,16 +52,6 @@ public class DynamicConfigTests {
     private Environment env;
 
     @Test
-    public void testBeanLoaded() {
-        DynamicConfigPropertiesWatcher bean = context.getBean(DynamicConfigPropertiesWatcher.class);
-        FeatureGate featureGate = context.getBean(FeatureGate.class);
-        DynamicConfigBeanPostProcessor processor = context.getBean(DynamicConfigBeanPostProcessor.class);
-        assertNotNull(bean);
-        assertNotNull(featureGate);
-        assertNotNull(processor);
-    }
-
-    @Test
     @SuppressWarnings("unchecked")
     public void testDynamicValueOnConfigurationProperties() throws Exception {
         assertEquals("dynamic", testBean.getInternalStr());
@@ -65,10 +59,10 @@ public class DynamicConfigTests {
         assertEquals("dynamic", testProperty.getStr());
 
         String testVal = randomStr(8);
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_2, "");
         Map<String, Object> myProp = (Map<String, Object>) data.get("myProp");
         myProp.put("str", testVal);
-        writeYmlData(data, CONFIG_LOCATION, "application.yml");
+        writeYmlData(data, IMPORT_LOCATION_2, "");
         Thread.sleep(1000);
         assertEquals(testVal, testProperty.getStr());
         // initialized bean won't be refreshed with new value, should take effect on injected bean
@@ -80,11 +74,11 @@ public class DynamicConfigTests {
     @SuppressWarnings("unchecked")
     public void testDynamicValueWithWrongType() throws Exception {
         String testVal = randomStr(8);
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_2, "");
         Map<String, Object> myProp = (Map<String, Object>) data.get("myProp");
         // should throw exception because of mal-type, won't impact running application
         myProp.put("double-val", testVal);
-        writeYmlData(data, CONFIG_LOCATION, "application.yml");
+        writeYmlData(data, IMPORT_LOCATION_2, "");
         Thread.sleep(1000);
         assertEquals(1f, testProperty.getDoubleVal());
     }
@@ -94,9 +88,9 @@ public class DynamicConfigTests {
         assertEquals("dynamic-test", testComponent.getPlainValue());
 
         String testVal = randomStr(8);
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application-dynamic.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_1, "");
         data.put("dynamicTestPlain", testVal);
-        writeYmlData(data, CONFIG_LOCATION, "application-dynamic.yml");
+        writeYmlData(data, IMPORT_LOCATION_1, "");
         Thread.sleep(1000);
         assertEquals(testVal, testComponent.getPlainValue());
     }
@@ -104,9 +98,9 @@ public class DynamicConfigTests {
     @Test
     public void testDynamicValuePlainTextWithKebabCase() throws Exception {
         String testVal = randomStr(8);
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application-dynamic.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_1, "");
         data.put("dynamic-test-plain", testVal);
-        writeYmlData(data, CONFIG_LOCATION, "application-dynamic.yml");
+        writeYmlData(data, IMPORT_LOCATION_1, "");
         Thread.sleep(1000);
         assertEquals(testVal, testComponent.getPlainValue());
     }
@@ -115,10 +109,10 @@ public class DynamicConfigTests {
     public void testConfigPropRemoveBoxedValue() throws Exception {
         assertEquals(3, testProperty.getBoxedIntVal());
 
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_2, "");
         Map<?, ?> myProp = (Map<?, ?>) data.get("myProp");
         myProp.remove("boxedIntVal");
-        writeYmlData(data, CONFIG_LOCATION, "application.yml");
+        writeYmlData(data, IMPORT_LOCATION_2, "");
         Thread.sleep(1000);
 
         // because of Spring binder mechanism, value would not be removed as Property being removed
@@ -129,11 +123,11 @@ public class DynamicConfigTests {
     @SuppressWarnings("unchecked")
     public void testConfigPropRemoveNestedCollectionValue() throws Exception {
         assertEquals("a1", testProperty.getNested().getCollectionVal().get(0));
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_2, "");
         Map<?, ?> myProp = (Map<?, ?>) data.get("myProp");
         List<Object> collectionVal = (List<Object>) ((Map<?, ?>) myProp.get("nested")).get("collection-val");
         collectionVal.remove(0);
-        writeYmlData(data, CONFIG_LOCATION, "application.yml");
+        writeYmlData(data, IMPORT_LOCATION_2, "");
         Thread.sleep(1000);
         assertEquals("a2", testProperty.getNested().getCollectionVal().get(0));
     }
@@ -143,12 +137,12 @@ public class DynamicConfigTests {
     public void testConfigPropAddOrRemoveNestedCollectionValue() throws Exception {
         assertEquals("a2", testProperty.getNested().getCollectionVal().get(0));
 
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_2, "");
         Map<?, ?> myProp = (Map<?, ?>) data.get("myProp");
         List<Object> collectionVal = (List<Object>) ((Map<?, ?>) myProp.get("nested")).get("collection-val");
         collectionVal.remove(0);
         collectionVal.add("a3");
-        writeYmlData(data, CONFIG_LOCATION, "application.yml");
+        writeYmlData(data, IMPORT_LOCATION_2, "");
         Thread.sleep(1000);
 
         assertEquals("a3", testProperty.getNested().getCollectionVal().get(0));
@@ -159,11 +153,11 @@ public class DynamicConfigTests {
     public void testConfigPropAddOrRemoveNestedMapValue() throws Exception {
         assertEquals("v1", testProperty.getNested().getMapVal().get("m1"));
 
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_2, "");
         Map<?, ?> myProp = (Map<?, ?>) data.get("myProp");
         Map<String, Object> mapVal = (Map<String, Object>) ((Map<?, ?>) myProp.get("nested")).get("mapVal");
         mapVal.remove("m1");
-        writeYmlData(data, CONFIG_LOCATION, "application.yml");
+        writeYmlData(data, IMPORT_LOCATION_2, "");
         Thread.sleep(1000);
 
         assertNull(testProperty.getNested().getMapVal().get("m1"));
@@ -175,12 +169,12 @@ public class DynamicConfigTests {
         assertEquals(2, testProperty.getIntVal());
         assertEquals("v3", testProperty.getMapVal().get("k3"));
 
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_2, "");
         Map<String, Object> myProp = (Map<String, Object>) data.get("myProp");
         myProp.remove("intVal");
         ((Map<String, Object>) myProp.get("map-val")).remove("k3");
         ((Map<String, Object>) myProp.get("map-val")).put("k4", "v4");
-        writeYmlData(data, CONFIG_LOCATION, "application.yml");
+        writeYmlData(data, IMPORT_LOCATION_2, "");
         Thread.sleep(1000);
 
         assertEquals(2, testProperty.getIntVal());
@@ -193,13 +187,13 @@ public class DynamicConfigTests {
     public void testListValues() throws Exception {
         assertEquals("l1", testProperty.getListVal().get(0));
 
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_2, "");
         Map<?, ?> myProp = (Map<?, ?>) data.get("myProp");
         List<String> listVal = (List<String>) myProp.get("list-val");
         listVal.remove(0);
         listVal.add("l3");
 
-        writeYmlData(data, CONFIG_LOCATION, "application.yml");
+        writeYmlData(data, IMPORT_LOCATION_2, "");
         Thread.sleep(1000);
 
         assertEquals("l2", testProperty.getListVal().get(0));
@@ -209,9 +203,9 @@ public class DynamicConfigTests {
     @Test
     public void testDynamicValueOnEnvBean() throws Exception {
         String testVal = randomStr(8);
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_2, "");
         data.put("dynamicEnvTest", testVal);
-        writeYmlData(data, CONFIG_LOCATION, "application.yml");
+        writeYmlData(data, IMPORT_LOCATION_2, "");
         Thread.sleep(1000);
         assertEquals(testVal, env.getProperty("dynamicEnvTest"));
     }
@@ -221,15 +215,15 @@ public class DynamicConfigTests {
         String testVal = randomStr(8);
         assertFalse(featureGate.isFeatureEnabled(testComponent.getSomeBetaFeatureConfig(), testVal));
 
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application-dynamic.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_1, "");
         data.put("dynamicFeatureConf", data.get("dynamicFeatureConf") + ", " + testVal + " ,");
-        writeYmlData(data, CONFIG_LOCATION, "application-dynamic.yml");
+        writeYmlData(data, IMPORT_LOCATION_1, "");
         Thread.sleep(1000);
 
         assertTrue(featureGate.isFeatureEnabled(testComponent.getSomeBetaFeatureConfig(), testVal));
         assertFalse(featureGate.isFeatureEnabled(testVal));
         data.put(testVal, "True");
-        writeYmlData(data, CONFIG_LOCATION, "application-dynamic.yml");
+        writeYmlData(data, IMPORT_LOCATION_1, "");
         Thread.sleep(1000);
         assertTrue(featureGate.isFeatureEnabled(testVal));
 
@@ -241,21 +235,20 @@ public class DynamicConfigTests {
         double testVal = randomDouble();
         double testVal2 = randomDouble();
 
-        Map<String, Object> data = readYmlData(CONFIG_LOCATION, "application-dynamic.yml");
+        Map<String, Object> data = readYmlData(IMPORT_LOCATION_1, "");
         Map<String, Object> internal = (Map<String, Object>) data.get("dynamic");
         internal.put("transform-a", testVal);
         internal.put("transform-b", testVal2);
-        writeYmlData(data, CONFIG_LOCATION, "application-dynamic.yml");
+        writeYmlData(data, IMPORT_LOCATION_1, "");
         Thread.sleep(1000);
 
         assertEquals(testVal / testVal2, testComponent.getTransformBySpEL());
 
         double testVal3 = randomDouble();
         internal.put("transform-b", testVal3);
-        writeYmlData(data, CONFIG_LOCATION, "application-dynamic.yml");
+        writeYmlData(data, IMPORT_LOCATION_1, "");
         Thread.sleep(1000);
 
         assertEquals(testVal / testVal3, testComponent.getTransformBySpEL());
     }
-
 }
