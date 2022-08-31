@@ -22,6 +22,9 @@ import java.util.Objects;
 @Slf4j
 public class ConfigurationChangedEvent extends ApplicationEvent {
 
+    /**
+     * Path of the file that changed and triggered this event
+     */
     private String path;
 
     /**

@@ -37,7 +37,7 @@ import static top.code2life.config.ConfigurationUtils.*;
 @ConditionalOnExpression("T(top.code2life.config.ConfigurationUtils).hasWatchableConf('${spring.config.location:}', '${spring.config.import:}')")
 public class DynamicConfigPropertiesWatcher implements DisposableBean {
 
-    public static final Map<String, FileSystemWatchTarget> WATCHABLE_TARGETS = new HashMap<>(4);
+    static final Map<String, FileSystemWatchTarget> WATCHABLE_TARGETS = new HashMap<>(4);
 
     private static final long SYMBOL_LINK_POLLING_INTERVAL = 5000;
     private static final long NORMAL_FILE_POLLING_INTERVAL = 90000;

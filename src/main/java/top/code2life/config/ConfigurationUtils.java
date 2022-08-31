@@ -109,6 +109,14 @@ public class ConfigurationUtils {
         return extension;
     }
 
+    /**
+     * Called in ConditionalOnExpression, as bean creation condition
+     *
+     * @param configLocation spring.config.location value
+     * @param configImport   spring.config.import value
+     * @return need watch config directory or not
+     * @see DynamicConfigPropertiesWatcher
+     */
     public static boolean hasWatchableConf(String configLocation, String configImport) {
         if (WATCHABLE_TARGETS.size() > 0) {
             return true;

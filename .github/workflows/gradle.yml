@@ -21,7 +21,7 @@ jobs:
     - name: gradlew-permission
       run: chmod +x gradlew
     - name: build-and-test
-      run: ./gradlew clean test
+      run: ./gradlew clean build -x test
       env:
         OSSRHUSERNAME: ${{ secrets.OSSRHUSERNAME }}
         OSSRHPASSWORD: ${{ secrets.OSSRHPASSWORD }}

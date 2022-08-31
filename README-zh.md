@@ -35,6 +35,8 @@
 
 ### 步骤一：添加依赖spring-boot-dynamic-config
 
+注意：Spring Boot 2.4以下版本请使用 1.0.8 版本
+
 Maven
 
 ```xml
@@ -132,8 +134,55 @@ public class TestConfigurationProperties {
 java -jar your-spring-boot-app.jar --spring.config.location=/path/to/config
 ```
 
+在Dynamic Config的1.0.9版本支持了Spring Boot 2.4之后版本的 'spring.config.import' 特性，并且增强了原生的 configtree 特性！
+
+```bash
+# config.import could be used with config.location TOGETHER
+java -jar your-spring-boot-app.jar --spring.config.import=/path/to/configA.yaml,/path/to/configB.yaml
+# or use the config tree feature
+java -jar your-spring-boot-app.jar --spring.config.import=configtree:/path/to/conf-dir/
+```
+
 启动后配置路径下的**任何文件修改**（/path/to/config/application-xxx.yml）都会在**相关联的注有@DynamicConfig的Spring Bean里立即生效**
 ，getter方法可以直接获取到最新配置值。
+
+### 新特性：Import Config Tree
+
+Spring Boot 2.4之后支持了导入配置文件或目录的参数，比如'--spring.config.import=configtree:/path/to/conf-dir/' 这个启动参数会让Spring
+Boot递归查找所有子目录和文件，加载到Spring Environment中作为Property，Key就是文件相对路径名：
+
+比如配置文件是： 'path/to/conf-dir/module-a/file-b.yaml', 则代码中可以用 'module-a.file-b.yaml'
+取到文件的内容，但类型只有String，并没有加载成完整的PropertySource。
+
+Dynamic Config 1.0.9 版本增强了这个特性，如果查找到带后缀的配置文件，会额外加载到Spring Environment中成为独立的、可热重载的PropertySource，使用方式如下。
+
+举个例子，比如spring.config.import目录是 '/path/to/conf-dir', 子目录中有这个配置文件 '/path/to/conf-dir/module-a/file-b.yaml'
+
+```yaml
+# file: /path/to/conf-dir/module-a/file-b.yaml
+prop-c-in-file: example-value
+
+prop-obj-key-infile:
+  fieldA: value
+  fieldB: value
+```
+
+代码中无需做任何变更，只需要加上文件路径的前缀即可，比如 module-a/file-b.yaml => module-a.file-b。
+
+```java
+@Value("${module-a.file-b.prop-c-in-file}")
+@DynamicConfig
+private String loadedByConfigTree
+
+// or
+@DynamicConfig
+@ConfigurationProperties(prefix = "module-a.file-b.prop-obj-key-infile")
+public class PropsLoadedByConfigTree {
+  // ...
+}
+```
+
+参考文档: https://docs.spring.io/spring-boot/docs/2.7.3/reference/htmlsingle/#features.external-config.files.configtree
 
 ### 配置管理的最佳实践
 
@@ -158,13 +207,12 @@ java -jar your-spring-boot-app.jar --spring.config.location=/path/to/config
 
 任何SpringBoot/SpringCloud应用都可以使用这个库，只要依赖的SpringBoot版本在SpringBoot 2.0以上即可。
 
-- √ SpringBoot 2.5.x 及以上
-- √ SpringBoot 2.4.x
-- √ SpringBoot 2.3.x
-- √ SpringBoot 2.2.x
-- √ SpringBoot 2.1.x
-- √ SpringBoot 2.0.x
-- X SpringBoot 1.5.x 及以下，不支持
+- √ SpringBoot 2.4.x, 2.5.x, 2.6.x, 2.7.x, 3.0.0 and Above (1.0.9以上版本)
+- √ SpringBoot 2.3.x (1.0.8及以下版本)
+- √ SpringBoot 2.2.x (1.0.8及以下版本)
+- √ SpringBoot 2.1.x (1.0.8及以下版本)
+- √ SpringBoot 2.0.x (1.0.8及以下版本)
+- X SpringBoot 1.5.x 不支持
 
 注意:
 

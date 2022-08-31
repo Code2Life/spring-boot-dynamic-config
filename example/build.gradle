@@ -29,8 +29,3 @@ dependencies {
 
 	implementation 'top.code2life:spring-boot-dynamic-config:1.0.9'
 }
-
-// type: configMap
-// files:
-//  - module-a/*.yaml
-//

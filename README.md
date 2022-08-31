@@ -35,6 +35,8 @@ Hot-reload your SpringBoot configurations, with just a '@DynamicConfig' annotati
 
 ### Step1. Add spring-boot-dynamic-config Dependency
 
+**If your Spring Boot version is 2.4 or lower, please use version 1.0.8**
+
 Maven
 
 ```xml
@@ -42,14 +44,14 @@ Maven
 <dependency>
     <groupId>top.code2life</groupId>
    <artifactId>spring-boot-dynamic-config</artifactId>
-   <version>1.0.8</version>
+   <version>1.0.9</version>
 </dependency>
 ```
 
 Gradle
 
 ```groovy
-implementation 'top.code2life:spring-boot-dynamic-config:1.0.8'
+implementation 'top.code2life:spring-boot-dynamic-config:1.0.9'
 ```
 
 ### Step2. Add @DynamicConfig Annotation
@@ -132,8 +134,58 @@ public class TestConfigurationProperties {
 java -jar your-spring-boot-app.jar --spring.config.location=/path/to/config
 ```
 
+Since Version 1.0.9 and Spring Boot 2.4, 'spring.config.import' is available !
+
+```bash
+# config.import could be used with config.location TOGETHER
+java -jar your-spring-boot-app.jar --spring.config.import=/path/to/configA.yaml,/path/to/configB.yaml
+# or use the config tree feature
+java -jar your-spring-boot-app.jar --spring.config.import=configtree:/path/to/conf-dir/
+```
+
 Then, modifications on /path/to/config/application-<some-profile>.yml will take effect and reflect on @DynamicConfig
 beans **immediately**.
+
+### Import Config Tree
+
+When using '--spring.config.import=configtree:/path/to/conf-dir/', Spring Boot will load all files recursively.
+
+It will result in ConfigTreePropertySource in Spring environments, with key of file path, for example:
+If file is 'path/to/conf-dir/module-a/file-b.yaml', the property key is 'module-a.file-b.yaml', the value is the content
+of the file.
+
+Dynamic Config version 1.0.9 enhanced this feature, when properties or yaml files found in config tree, it will append
+additional property sources, and will watch all file changes and then manipulate these property sources to keep them
+Dynamic, so that you could use like following:
+
+Suppose you have this file in spring.config.import directory '/path/to/conf-dir',
+
+```yaml
+# file: /path/to/conf-dir/module-a/file-b.yaml
+prop-c-in-file: example-value
+
+prop-obj-key-infile:
+  fieldA: value
+  fieldB: value
+```
+
+Just adding prefix it will work, the prefix is similar to the file's relative path module-a/file-b.yaml =>
+module-a.file-b。
+
+```java
+@Value("${module-a.file-b.prop-c-in-file}")
+@DynamicConfig
+private String loadedByConfigTree
+
+// or
+@DynamicConfig
+@ConfigurationProperties(prefix = "module-a.file-b.prop-obj-key-infile")
+public class PropsLoadedByConfigTree {
+   // ...
+}
+```
+
+Refer: https://docs.spring.io/spring-boot/docs/2.7.3/reference/htmlsingle/#features.external-config.files.configtree
 
 ### Best Practices
 
@@ -144,7 +196,7 @@ beans **immediately**.
 
 ## Implementation
 
-1. Bean 'DynamicConfigPropertiesWatcher' will be initialized if 'spring.config.location' is specified
+1. Bean 'DynamicConfigPropertiesWatcher' will be initialized if 'spring.config.location/import' is specified
 2. Bean 'DynamicConfigBeanPostProcessor' will be initialized if 'DynamicConfigPropertiesWatcher' exists
 3. DynamicConfigBeanPostProcessor collects beans' metadata after initializing
 4. DynamicConfigPropertiesWatcher watches configuration directory, then replace PropertySource in Environment on changes
@@ -158,10 +210,8 @@ beans **immediately**.
 
 Any SpringBoot/SpringCloud application within following SpringBoot version can use this lib.
 
-- √ SpringBoot 2.6.x, 2.7.x, 3.0.0 and Above
-- √ SpringBoot 2.5.x 
-- √ SpringBoot 2.4.x
-- √ SpringBoot 2.3.x
+- √ SpringBoot 2.4.x, 2.5.x, 2.6.x, 2.7.x, 3.0.0 and Above (Use spring-boot-dynamic-config 1.0.9 and above)
+- √ SpringBoot 2.3.x (spring-boot-dynamic-config version: <= 1.0.8)
 - √ SpringBoot 2.2.x
 - √ SpringBoot 2.1.x
 - √ SpringBoot 2.0.x

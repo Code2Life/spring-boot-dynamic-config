@@ -41,7 +41,9 @@ import static top.code2life.config.ConfigurationUtils.findAllKeyAndFilesInConfig
 @ConditionalOnClass(ConfigTreeConfigDataLoader.class)
 public class ConfigTreeEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
-
+    /**
+     * Config file template as PropertySource name
+     */
     public static final String ADDITIONAL_PROPERTY_TEMPLATE = "Config resource 'file [%s]' via configTree";
 
     @Override

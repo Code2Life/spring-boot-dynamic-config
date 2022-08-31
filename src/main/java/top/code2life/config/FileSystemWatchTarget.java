@@ -45,6 +45,9 @@ public class FileSystemWatchTarget {
         }
     }
 
+    /**
+     * The watch target type, from spring.config.location or import:configtree / file
+     */
     public enum WatchTargetType {
 
         /**
