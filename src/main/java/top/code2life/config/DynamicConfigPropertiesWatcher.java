@@ -40,7 +40,7 @@ public class DynamicConfigPropertiesWatcher implements DisposableBean {
     static final Map<String, FileSystemWatchTarget> WATCHABLE_TARGETS = new HashMap<>(4);
 
     private static final long SYMBOL_LINK_POLLING_INTERVAL = 5000;
-    private static final long NORMAL_FILE_POLLING_INTERVAL = 90000;
+    private static final long NORMAL_FILE_POLLING_INTERVAL = 9000;
 
     private static final String FILE_COLON_SYMBOL = "file:";
 
